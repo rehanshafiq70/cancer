@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 # =============================================================================
 class NeuralCoreEngine:
     MODEL_FILE     = "skin_cancer_cnn.h5"
-    GDRIVE_FILE_ID = "YOUR_GOOGLE_DRIVE_FILE_ID_HERE"   # <-- paste Drive ID here
+    GDRIVE_FILE_ID = "18A3F0XdVmuqnoWTD_UvsAKw2iIvLghXf"
 
     def __init__(self):
         self.is_online     = False
