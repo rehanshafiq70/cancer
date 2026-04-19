@@ -1,67 +1,72 @@
 import streamlit as st
 import numpy as np
-from PIL import Image
-import onnxruntime as ort
 import os
+import gdown
+import onnxruntime as ort
+from PIL import Image
 
-# ======================
-# CONFIG
-# ======================
 MODEL_PATH = "model.onnx"
+FILE_ID = "PASTE_YOUR_FILE_ID_HERE"
 
-st.set_page_config(page_title="SkinScan AI", layout="centered")
+# =========================
+# SAFE DOWNLOAD MODEL
+# =========================
+def download_model():
+    if os.path.exists(MODEL_PATH) and os.path.getsize(MODEL_PATH) > 100000:
+        return True
 
-# ======================
-# LOAD MODEL (LOCAL FILE)
-# ======================
+    try:
+        url = f"https://drive.google.com/uc?id={FILE_ID}"
+        gdown.download(url, MODEL_PATH, quiet=False)
+
+        # CHECK FILE SIZE (VERY IMPORTANT FIX)
+        if not os.path.exists(MODEL_PATH) or os.path.getsize(MODEL_PATH) < 100000:
+            st.error("❌ Model file corrupted or incomplete download")
+            return False
+
+        return True
+
+    except Exception as e:
+        st.error(f"❌ Download failed: {str(e)}")
+        return False
+
+
+# =========================
+# LOAD MODEL SAFELY
+# =========================
 @st.cache_resource
 def load_model():
-    if not os.path.exists(MODEL_PATH):
-        st.error("❌ model.onnx file missing in repo!")
-        st.stop()
+    ok = download_model()
+    if not ok:
+        return None
 
-    return ort.InferenceSession(MODEL_PATH)
+    try:
+        session = ort.InferenceSession(MODEL_PATH)
+        return session
+    except Exception as e:
+        st.error("❌ ONNX Model corrupted (InvalidProtobuf)")
+        st.error("Reconvert model in Colab again")
+        return None
+
 
 session = load_model()
 
-# ======================
-# PREDICT FUNCTION
-# ======================
-def predict(img):
-    img = img.resize((224, 224))
-    img = np.array(img).astype(np.float32) / 255.0
-    img = np.expand_dims(img, axis=0)
+if session is None:
+    st.stop()
 
-    input_name = session.get_inputs()[0].name
-    out = session.run(None, {input_name: img})[0]
-
-    if out.shape[-1] == 1:
-        mal = float(out[0][0])
-        ben = 1 - mal
-    else:
-        ben = float(out[0][0])
-        mal = float(out[0][1])
-
-    label = "Malignant" if mal > 0.5 else "Benign"
-    conf = round(max(mal, ben) * 100, 2)
-
-    return label, conf
-
-# ======================
+# =========================
 # UI
-# ======================
-st.title("🧬 Skin Cancer Detection AI")
+# =========================
+st.title("Skin Cancer AI")
 
-uploaded = st.file_uploader("Upload Image", type=["jpg","png","jpeg"])
+img_file = st.file_uploader("Upload Image")
 
-if uploaded:
-    img = Image.open(uploaded).convert("RGB")
-    st.image(img, caption="Uploaded Image")
+if img_file:
+    img = Image.open(img_file).resize((224,224))
+    arr = np.array(img).astype(np.float32)/255.0
+    arr = np.expand_dims(arr,0)
 
-    if st.button("Predict"):
-        label, conf = predict(img)
+    inp = session.get_inputs()[0].name
+    out = session.run(None, {inp: arr})
 
-        if label == "Malignant":
-            st.error(f"⚠️ {label} ({conf}%)")
-        else:
-            st.success(f"✅ {label} ({conf}%)")
+    st.write("Prediction:", out[0])
