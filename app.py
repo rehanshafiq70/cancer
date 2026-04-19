@@ -251,6 +251,15 @@ def download_model_from_gdrive(file_id: str, dest: str) -> bool:
 @st.cache_resource(show_spinner=False)
 def load_model():
     """Load (or download then load) the CNN model. Cached after first load."""
+    # TensorFlow does not support Python 3.14+ yet.
+    # Gracefully fall back to demo mode if unavailable.
+    try:
+        import tensorflow as tf  # noqa: F401
+    except (ImportError, ModuleNotFoundError):
+        return None
+    except Exception:
+        return None
+
     try:
         import tensorflow as tf
 
@@ -262,9 +271,6 @@ def load_model():
 
         model = tf.keras.models.load_model(MODEL_PATH)
         return model
-    except ImportError:
-        st.warning("TensorFlow not installed — running in demo mode.")
-        return None
     except Exception as e:
         st.error(f"Model loading error: {e}")
         return None
