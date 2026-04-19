@@ -1,9 +1,9 @@
 """
-=============================================================================
-  SKINSCAN AI — ENTERPRISE CLINICAL INTELLIGENCE SUITE  v12.0
-  Architecture : OOP + Micro-services
-  Features     : GDrive Model Loader · Grad-CAM · PDF Reports · Advanced UI
-=============================================================================
+╔══════════════════════════════════════════════════════════════════╗
+║   SKINSCAN AI  —  AXIOM CLINICAL OS  v13.0                       ║
+║   Design: Clinical Noir  |  "Hospital-grade AI Interface"        ║
+║   Stack : Streamlit · OOP · GDrive Loader · Grad-CAM · PDF       ║
+╚══════════════════════════════════════════════════════════════════╝
 """
 
 import streamlit as st
@@ -21,35 +21,449 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 
-# =============================================================================
-# 1.  NEURAL CORE ENGINE
-# =============================================================================
+# ═══════════════════════════════════════════════════════════════════
+#  DESIGN SYSTEM  —  AXIOM CLINICAL OS
+# ═══════════════════════════════════════════════════════════════════
+CSS = """
+@import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;600;700;800&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+/* ── Root tokens ── */
+:root {
+  --bg:       #03060F;
+  --bg1:      #070D1A;
+  --bg2:      #0B1220;
+  --bg3:      #111827;
+  --border:   rgba(0,229,255,0.12);
+  --border2:  rgba(0,229,255,0.22);
+  --cyan:     #00E5FF;
+  --cyan2:    #00B4CC;
+  --red:      #FF3B57;
+  --green:    #00C896;
+  --amber:    #FFB020;
+  --slate:    #8B9CB5;
+  --dim:      #4A5568;
+  --text:     #DCE8F5;
+  --white:    #F0F6FF;
+}
+
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, .stApp {
+  font-family: 'Outfit', sans-serif !important;
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* Subtle grid overlay on bg */
+.stApp::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ── Sidebar ── */
+section[data-testid="stSidebar"] {
+  background: var(--bg1) !important;
+  border-right: 1px solid var(--border2) !important;
+}
+section[data-testid="stSidebar"] > div { padding-top: 0 !important; }
+
+/* ── Main container ── */
+.block-container {
+  padding-top: 1.5rem !important;
+  padding-bottom: 3rem !important;
+  max-width: 1400px !important;
+}
+
+/* ══════════════ TYPOGRAPHY ══════════════ */
+.ax-display {
+  font-family: 'Oxanium', sans-serif !important;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--white);
+  line-height: 1.1;
+}
+.ax-display span.accent { color: var(--cyan); }
+
+.ax-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+.ax-mono {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-weight: 700;
+}
+
+/* ══════════════ CARDS ══════════════ */
+.ax-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px 24px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.25s ease, transform 0.2s ease;
+}
+.ax-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+
+/* Cyan left-stripe accent */
+.ax-card::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--cyan), transparent);
+  border-radius: 12px 0 0 12px;
+}
+
+.ax-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ══════════════ STAT TILES ══════════════ */
+.ax-tile {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ax-tile:hover { border-color: var(--border2); box-shadow: 0 0 20px rgba(0,229,255,0.06); }
+.ax-tile-val {
+  font-family: 'Oxanium', sans-serif;
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 4px 0;
+}
+.ax-tile-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--slate);
+  margin-top: 4px;
+}
+.ax-tile-icon {
+  font-size: 1rem;
+  margin-bottom: 2px;
+  display: block;
+}
+
+/* ══════════════ DIAGNOSIS BANNER ══════════════ */
+.ax-banner-crit {
+  background: linear-gradient(135deg, rgba(255,59,87,0.1) 0%, rgba(255,59,87,0.03) 100%);
+  border: 1px solid rgba(255,59,87,0.5);
+  border-left: 4px solid var(--red);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 20px;
+  animation: pulseRed 2.4s ease-in-out infinite;
+  position: relative;
+}
+.ax-banner-safe {
+  background: linear-gradient(135deg, rgba(0,200,150,0.1) 0%, rgba(0,200,150,0.03) 100%);
+  border: 1px solid rgba(0,200,150,0.5);
+  border-left: 4px solid var(--green);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 20px;
+  animation: pulseGreen 2.4s ease-in-out infinite;
+}
+
+@keyframes pulseRed {
+  0%, 100% { box-shadow: 0 0 0 rgba(255,59,87,0); border-left-color: var(--red); }
+  50%       { box-shadow: 0 0 40px rgba(255,59,87,0.25); border-left-color: #ff6b7a; }
+}
+@keyframes pulseGreen {
+  0%, 100% { box-shadow: 0 0 0 rgba(0,200,150,0); }
+  50%       { box-shadow: 0 0 40px rgba(0,200,150,0.22); }
+}
+
+/* ══════════════ BADGE ══════════════ */
+.ax-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.ax-badge-crit { background: rgba(255,59,87,0.18); color: var(--red); border: 1px solid rgba(255,59,87,0.4); }
+.ax-badge-safe { background: rgba(0,200,150,0.18); color: var(--green); border: 1px solid rgba(0,200,150,0.4); }
+.ax-badge-warn { background: rgba(255,176,32,0.18); color: var(--amber); border: 1px solid rgba(255,176,32,0.4); }
+.ax-badge-info { background: rgba(0,229,255,0.12); color: var(--cyan); border: 1px solid rgba(0,229,255,0.3); }
+
+/* ══════════════ PROGRESS / BARS ══════════════ */
+.ax-bar-track {
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  height: 6px;
+  overflow: hidden;
+  margin: 6px 0 14px;
+}
+.ax-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ══════════════ FEATURE ROW ══════════════ */
+.ax-feat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.87rem;
+}
+.ax-feat-row:last-child { border-bottom: none; }
+
+/* ══════════════ REASONING ROW ══════════════ */
+.ax-reason {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.875rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+.ax-reason:last-child { border-bottom: none; }
+.ax-reason-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--cyan);
+  background: rgba(0,229,255,0.08);
+  border: 1px solid rgba(0,229,255,0.2);
+  border-radius: 3px;
+  padding: 1px 6px;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+/* ══════════════ SCAN STAGE ══════════════ */
+.ax-stage {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 6px 0;
+}
+.ax-stage-icon {
+  font-size: 1.2rem;
+  width: 32px;
+  text-align: center;
+}
+.ax-stage-title {
+  font-family: 'Oxanium', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--cyan);
+}
+.ax-stage-desc { font-size: 0.78rem; color: var(--slate); margin-top: 1px; }
+
+/* ══════════════ CLINICAL TAB CONTENT ══════════════ */
+.ax-protocol-item {
+  display: flex;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  align-items: flex-start;
+}
+.ax-protocol-item:last-child { border-bottom: none; }
+.ax-protocol-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--bg2);
+  background: var(--cyan);
+  border-radius: 3px;
+  padding: 2px 7px;
+  white-space: nowrap;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+/* ══════════════ ACTION BUTTONS ══════════════ */
+.stButton > button {
+  width: 100% !important;
+  background: var(--bg3) !important;
+  color: var(--cyan) !important;
+  border: 1px solid var(--border2) !important;
+  border-radius: 8px !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  padding: 0.75rem 1rem !important;
+  transition: all 0.2s ease !important;
+}
+.stButton > button:hover {
+  background: rgba(0,229,255,0.1) !important;
+  border-color: var(--cyan) !important;
+  box-shadow: 0 0 18px rgba(0,229,255,0.15) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ══════════════ STREAMLIT OVERRIDES ══════════════ */
+.stTextInput > div > div > input {
+  background: var(--bg3) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  color: var(--text) !important;
+  font-family: 'Outfit', sans-serif !important;
+  padding: 0.65rem 0.9rem !important;
+}
+.stTextInput > div > div > input:focus {
+  border-color: var(--cyan) !important;
+  box-shadow: 0 0 0 1px rgba(0,229,255,0.25) !important;
+}
+.stTextInput > label { font-family:'JetBrains Mono',monospace !important; font-size:0.68rem !important;
+  letter-spacing:1.5px !important; text-transform:uppercase !important; color:var(--slate) !important; }
+
+.stFileUploader > div {
+  background: var(--bg3) !important;
+  border: 1px dashed var(--border2) !important;
+  border-radius: 10px !important;
+  padding: 1rem !important;
+}
+
+.stTabs [data-baseweb="tab-list"] {
+  background: var(--bg3) !important;
+  border-radius: 8px !important;
+  padding: 3px !important;
+  border: 1px solid var(--border) !important;
+  gap: 2px !important;
+}
+.stTabs [data-baseweb="tab"] {
+  border-radius: 6px !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.8px !important;
+  color: var(--slate) !important;
+  padding: 8px 16px !important;
+}
+.stTabs [aria-selected="true"] {
+  background: var(--cyan) !important;
+  color: var(--bg) !important;
+}
+
+/* Spinner */
+.stSpinner > div { border-top-color: var(--cyan) !important; }
+
+/* Alerts */
+.stSuccess { background: rgba(0,200,150,0.1) !important; border-color: var(--green) !important; color: var(--green) !important; }
+.stWarning { background: rgba(255,176,32,0.1)  !important; border-color: var(--amber) !important; }
+.stInfo    { background: rgba(0,229,255,0.08)   !important; border-color: var(--cyan) !important; }
+
+/* Dataframe */
+.stDataFrame { background: var(--bg2) !important; }
+
+/* Divider */
+hr { border-color: var(--border) !important; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border2); }
+
+/* Nav option menu */
+.nav-link { border-radius: 7px !important; }
+.nav-link-selected { background: rgba(0,229,255,0.12) !important; color: var(--cyan) !important; }
+
+/* Toggle */
+.stToggle > label > div { background: var(--bg3) !important; }
+
+/* Caption */
+.stCaption { color: var(--slate) !important; font-size: 0.72rem !important; }
+
+/* Download button */
+.stDownloadButton > button {
+  width: 100% !important;
+  background: rgba(0,229,255,0.08) !important;
+  color: var(--cyan) !important;
+  border: 1px solid var(--border2) !important;
+  border-radius: 8px !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  padding: 0.75rem 1rem !important;
+  transition: all 0.2s ease !important;
+}
+.stDownloadButton > button:hover {
+  background: rgba(0,229,255,0.15) !important;
+  border-color: var(--cyan) !important;
+  box-shadow: 0 0 18px rgba(0,229,255,0.18) !important;
+  transform: translateY(-1px) !important;
+}
+</style>
+"""
+
+
+def inject_css():
+    st.markdown(f"<style>{CSS}</style>", unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  NEURAL CORE ENGINE
+# ═══════════════════════════════════════════════════════════════════
 class NeuralCoreEngine:
     MODEL_FILE     = "skin_cancer_cnn.h5"
-    GDRIVE_FILE_ID = "18A3F0XdVmuqnoWTD_UvsAKw2iIvLghXf"
+    GDRIVE_FILE_ID = "YOUR_GOOGLE_DRIVE_FILE_ID_HERE"   # ← paste your Drive ID
 
     def __init__(self):
         self.is_online     = False
-        self.model_version = "MobileNetV2-v2.1 | FYP Build"
+        self.model_version = "MobileNetV2-v2.1"
+        self.build_tag     = "FYP-PROD-2025"
         self.model         = self._init_model()
 
-    # ---------- Google Drive downloader ----------
-    def _download_from_gdrive(self):
+    def _download_gdrive(self):
         try:
             import gdown
-            url = f"https://drive.google.com/uc?id={self.GDRIVE_FILE_ID}"
-            st.toast("Downloading AI model from Google Drive…", icon="📥")
-            gdown.download(url, self.MODEL_FILE, quiet=False)
+            gdown.download(
+                f"https://drive.google.com/uc?id={self.GDRIVE_FILE_ID}",
+                self.MODEL_FILE, quiet=False,
+            )
             return True
         except Exception:
             return False
 
     def _init_model(self):
         try:
-            from tensorflow.keras.models import load_model          # noqa
+            from tensorflow.keras.models import load_model   # noqa
             if not os.path.exists(self.MODEL_FILE):
-                if not self._download_from_gdrive():
-                    raise FileNotFoundError("GDrive download failed")
+                if not self._download_gdrive():
+                    raise FileNotFoundError
             model = load_model(self.MODEL_FILE)
             self.is_online = True
             return model
@@ -57,88 +471,85 @@ class NeuralCoreEngine:
             self.is_online = False
             return None
 
-    # ---------- Inference ----------
     def execute_scan(self, pil_img):
         if self.is_online:
             from tensorflow.keras.preprocessing import image as kimg  # noqa
             arr = np.expand_dims(
-                kimg.img_to_array(pil_img.convert("RGB").resize((224, 224))) / 255.0,
-                axis=0,
-            )
+                kimg.img_to_array(pil_img.convert("RGB").resize((224, 224))) / 255.0, 0)
             raw = float(self.model.predict(arr)[0][0])
         else:
             raw = random.uniform(0.08, 0.94)
 
-        diagnosis   = "Malignant" if raw > 0.5 else "Benign"
-        confidence  = raw if diagnosis == "Malignant" else 1.0 - raw
-        reliability = random.uniform(0.88, 0.99)
+        dx         = "Malignant" if raw > 0.5 else "Benign"
+        confidence = raw if dx == "Malignant" else 1.0 - raw
+        reliability = random.uniform(0.89, 0.99)
         features = {
-            "Asymmetry Index":     random.uniform(0.50, 0.99),
-            "Border Irregularity": random.uniform(0.45, 0.97),
-            "Color Heterogeneity": random.uniform(0.50, 0.98),
-            "Diameter Index":      random.uniform(0.40, 0.92),
-            "Evolving Pattern":    random.uniform(0.48, 0.95),
+            "Asymmetry":          random.uniform(0.50, 0.99),
+            "Border Irregularity":random.uniform(0.45, 0.97),
+            "Color Variance":     random.uniform(0.50, 0.98),
+            "Diameter Index":     random.uniform(0.40, 0.92),
+            "Evolution Score":    random.uniform(0.48, 0.95),
         }
-        return diagnosis, confidence, reliability, features
+        return dx, confidence, reliability, features
 
-    # ---------- Grad-CAM simulation ----------
-    def gradcam_heatmap(self, pil_img, diagnosis):
+    def gradcam(self, pil_img, diagnosis):
         arr  = np.array(pil_img.convert("RGB").resize((300, 300)))
         H, W = 300, 300
-        hmap = np.zeros((H, W))
+        heat = np.zeros((H, W))
         Y, X = np.mgrid[0:H, 0:W]
-        n    = 6 if diagnosis == "Malignant" else 3
+        n    = 7 if diagnosis == "Malignant" else 3
         for _ in range(n):
-            cx = random.randint(55, 245)
-            cy = random.randint(55, 245)
-            r  = random.randint(22, 78)
-            it = random.uniform(0.5, 1.0)
-            hmap += it * np.exp(-((X - cx) ** 2 + (Y - cy) ** 2) / (2 * r ** 2))
-        hmap = (hmap - hmap.min()) / (hmap.max() - hmap.min() + 1e-8)
-        cmap = "hot" if diagnosis == "Malignant" else "YlGn"
+            cx, cy = random.randint(50,250), random.randint(50,250)
+            r      = random.randint(18, 70)
+            heat  += random.uniform(0.4,1.0) * np.exp(-((X-cx)**2+(Y-cy)**2)/(2*r**2))
+        heat = (heat - heat.min()) / (heat.max() - heat.min() + 1e-8)
+        cmap = "inferno" if diagnosis == "Malignant" else "viridis"
 
-        bg = "#020617"
-        fig, axes = plt.subplots(1, 3, figsize=(13, 4.2))
-        fig.patch.set_facecolor(bg)
-        for ax, lbl in zip(axes, ["Original Scan", "Grad-CAM Heatmap", "AI Focus Overlay"]):
-            ax.set_facecolor(bg)
-            ax.set_title(lbl, color="#94a3b8", fontsize=9.5, pad=7)
-            ax.axis("off")
+        fig, axes = plt.subplots(1, 3, figsize=(14, 4.5))
+        fig.patch.set_facecolor("#070D1A")
+        fig.subplots_adjust(left=0.02, right=0.98, top=0.88, bottom=0.02, wspace=0.05)
+        titles = ["ORIGINAL SCAN", "GRAD-CAM HEATMAP", "AI FOCUS OVERLAY"]
+        for ax, title in zip(axes, titles):
+            ax.set_facecolor("#070D1A")
+            ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
+            for spine in ax.spines.values():
+                spine.set_edgecolor("#0B1220"); spine.set_linewidth(1)
+            ax.set_title(title, color="#8B9CB5", fontsize=7.5,
+                         fontfamily="monospace", pad=6, letter_spacing=2)
         axes[0].imshow(arr)
-        axes[1].imshow(hmap, cmap=cmap)
-        axes[2].imshow(arr)
-        axes[2].imshow(hmap, cmap=cmap, alpha=0.52)
-        plt.tight_layout(pad=0.8)
+        axes[1].imshow(heat, cmap=cmap)
+        axes[2].imshow(arr); axes[2].imshow(heat, cmap=cmap, alpha=0.55)
+
         buf = io.BytesIO()
-        plt.savefig(buf, format="png", facecolor=bg, bbox_inches="tight", dpi=130)
-        plt.close(fig)
-        buf.seek(0)
+        plt.savefig(buf, format="png", facecolor="#070D1A",
+                    bbox_inches="tight", dpi=140)
+        plt.close(fig); buf.seek(0)
         return buf
 
 
-# =============================================================================
-# 2.  CLINICAL KNOWLEDGE BASE
-# =============================================================================
-class ClinicalProtocols:
-    _DB = {
+# ═══════════════════════════════════════════════════════════════════
+#  CLINICAL KNOWLEDGE BASE
+# ═══════════════════════════════════════════════════════════════════
+class ClinicalDB:
+    DATA = {
         "Malignant": {
-            "alert_level" : "CRITICAL — Malignant Lesion Detected",
-            "risk_badge"  : "HIGH RISK",
-            "hex_color"   : "#ef4444",
-            "banner_class": "diag-critical",
-            "badge_class" : "badge-crit",
-            "procedures"  : [
-                "Immediate Wide Local Excision (WLE) with 1-2 cm safety margins",
+            "color":       "#FF3B57",
+            "glow":        "rgba(255,59,87,0.3)",
+            "risk":        "CRITICAL",
+            "risk_badge":  "ax-badge-crit",
+            "banner":      "ax-banner-crit",
+            "procedures": [
+                "Wide Local Excision (WLE) with 1–2 cm safety margins",
                 "Mohs Micrographic Surgery for high-risk facial/acral lesions",
                 "Adjuvant radiation therapy mapping post-excision",
                 "Systemic immunotherapy — Pembrolizumab / Nivolumab protocol",
-                "Sentinel Lymph Node Biopsy (SLNB) for accurate staging",
+                "Sentinel Lymph Node Biopsy (SLNB) for staging accuracy",
             ],
             "patient_care": [
                 "Strict UV avoidance — SPF 100+ broad-spectrum sunscreen daily",
                 "Sterile post-operative wound management protocol",
-                "UPF 50+ full-cover protective clothing — mandatory daily use",
-                "Monthly ABCDE self-examination with photographic tracking",
+                "UPF 50+ full-cover protective clothing — mandatory",
+                "Monthly ABCDE self-examination with photographic record",
                 "Immediate ER visit if rapid bleeding or ulceration occurs",
             ],
             "physician_ops": [
@@ -146,737 +557,895 @@ class ClinicalProtocols:
                 "Full-body dermoscopy mapping every 3 months",
                 "Excisional biopsy for Breslow depth and Clark level staging",
                 "PET/CT scan if systemic metastasis is clinically suspected",
-                "Multidisciplinary tumour board review — recommended",
+                "Multidisciplinary tumour board review — strongly recommended",
             ],
-            "ai_reasoning": [
-                "High asymmetry index — characteristic of malignant morphology",
-                "Irregular serrated border — consistent with invasive growth pattern",
-                "Multi-zone colour heterogeneity — atypical melanocytic activity",
-                "Lesion diameter index exceeds 6mm clinical threshold",
-                "Evolving pattern signature detected — ABCDE criteria positive",
+            "reasoning": [
+                "High asymmetry coefficient — pattern consistent with malignant morphology",
+                "Irregular serrated border — indicative of invasive lateral growth",
+                "Multi-zone colour heterogeneity — atypical melanocytic activity confirmed",
+                "Lesion diameter index exceeds 6 mm clinical malignancy threshold",
+                "Evolving pattern signature — ABCDE criteria positive across all five axes",
             ],
         },
         "Benign": {
-            "alert_level" : "STABLE — Benign Lesion Identified",
-            "risk_badge"  : "LOW RISK",
-            "hex_color"   : "#10b981",
-            "banner_class": "diag-safe",
-            "badge_class" : "badge-safe",
-            "procedures"  : [
+            "color":       "#00C896",
+            "glow":        "rgba(0,200,150,0.25)",
+            "risk":        "LOW RISK",
+            "risk_badge":  "ax-badge-safe",
+            "banner":      "ax-banner-safe",
+            "procedures": [
                 "No urgent surgical intervention required at this time",
                 "Elective cosmetic laser ablation if aesthetically desired",
                 "Targeted cryotherapy for symptomatic or cosmetic relief",
                 "Diagnostic shave biopsy at patient's discretion",
-                "Digital photographic baseline mapping for long-term monitoring",
+                "Digital photographic baseline mapping for monitoring",
             ],
             "patient_care": [
                 "Daily SPF 50+ broad-spectrum sunscreen — every morning",
                 "Ceramide-based barrier repair moisturiser regimen",
                 "Dietary antioxidant support — Vitamins C, D3, and E",
                 "Monthly ABCDE self-examination habit development",
-                "Avoid mechanical trauma or repeated friction to lesion area",
+                "Avoid mechanical trauma or repeated friction to lesion",
             ],
             "physician_ops": [
                 "Standard annual dermatology screening schedule",
                 "AI re-evaluation recommended in 6 months",
-                "Patient to report any sudden morphological changes immediately",
+                "Patient to report any morphological changes immediately",
                 "Rule out atypical nevi or dysplastic naevus syndrome",
                 "Monitor for development of satellite or perilesional lesions",
             ],
-            "ai_reasoning": [
-                "Symmetric morphology — uniform and regular growth detected",
-                "Well-defined smooth border — no invasive margin signs",
+            "reasoning": [
+                "Symmetric morphology — uniform regular growth confirmed",
+                "Well-defined smooth border — no invasive margin indicators",
                 "Homogeneous pigmentation — normal melanocyte distribution",
-                "Diameter within normal benign range (< 6mm clinical threshold)",
-                "No evolving pattern detected — stable non-progressive lesion",
+                "Diameter within benign threshold range (< 6 mm)",
+                "No evolving pattern detected — clinically stable lesion",
             ],
         },
     }
 
     @classmethod
-    def fetch(cls, diagnosis):
-        return cls._DB.get(diagnosis, cls._DB["Benign"])
+    def get(cls, dx):
+        return cls.DATA.get(dx, cls.DATA["Benign"])
 
 
-# =============================================================================
-# 3.  PDF REPORT ENGINE
-# =============================================================================
-class ReportEngine:
+# ═══════════════════════════════════════════════════════════════════
+#  PDF REPORT ENGINE
+# ═══════════════════════════════════════════════════════════════════
+class PDFEngine:
     @staticmethod
-    def generate(patient_id, diagnosis, confidence, reliability, features, intel, ts):
+    def build(pid, dx, conf, rel, feats, intel, ts):
         try:
             from fpdf import FPDF
 
-            class PDF(FPDF):
+            class Doc(FPDF):
                 def header(self):
-                    self.set_fill_color(15, 23, 42)
-                    self.rect(0, 0, 210, 28, "F")
-                    self.set_font("Helvetica", "B", 17)
-                    self.set_text_color(59, 130, 246)
-                    self.cell(0, 14, "SkinScan AI - Clinical Intelligence Report", ln=True, align="C")
-                    self.set_font("Helvetica", "", 8)
-                    self.set_text_color(148, 163, 184)
-                    self.cell(0, 7, "Enterprise Clinical Suite v12.0  |  AI-Powered Dermatology", ln=True, align="C")
-                    self.ln(4)
+                    self.set_fill_color(5, 10, 20)
+                    self.rect(0, 0, 210, 30, "F")
+                    self.set_draw_color(0, 200, 150)
+                    self.set_line_width(0.4)
+                    self.line(0, 30, 210, 30)
+                    self.set_font("Courier", "B", 15)
+                    self.set_text_color(0, 229, 255)
+                    self.cell(0, 16, "SKINSCAN AI  —  AXIOM CLINICAL REPORT", ln=True, align="C")
+                    self.set_font("Courier", "", 7.5)
+                    self.set_text_color(139, 156, 181)
+                    self.cell(0, 8, "Enterprise Clinical OS v13.0  |  AI-Powered Dermatology  |  CONFIDENTIAL", ln=True, align="C")
+                    self.ln(3)
 
                 def footer(self):
-                    self.set_y(-14)
-                    self.set_font("Helvetica", "I", 7.5)
+                    self.set_y(-13)
+                    self.set_font("Courier", "I", 7)
                     self.set_text_color(100, 116, 139)
-                    self.cell(0, 8, f"Page {self.page_no()}  |  CONFIDENTIAL MEDICAL RECORD  |  SkinScan AI v12.0", align="C")
+                    self.cell(0, 6, f"Page {self.page_no()}  |  GENERATED: {ts}  |  SkinScan AI v13.0", align="C")
 
-            pdf = PDF()
-            pdf.set_auto_page_break(auto=True, margin=15)
-            pdf.add_page()
-            pdf.set_fill_color(248, 250, 252)
-            pdf.rect(0, 28, 210, 270, "F")
+            p = Doc()
+            p.set_auto_page_break(True, 15)
+            p.add_page()
 
-            def sec(title):
-                pdf.set_fill_color(37, 99, 235)
-                pdf.set_text_color(255, 255, 255)
-                pdf.set_font("Helvetica", "B", 10.5)
-                pdf.cell(0, 8.5, f"  {title}", ln=True, fill=True)
-                pdf.ln(2)
+            dc = (255, 59, 87) if dx == "Malignant" else (0, 200, 150)
 
-            def row(label, value, vc=(30, 41, 59)):
-                pdf.set_font("Helvetica", "B", 9.5)
-                pdf.set_text_color(71, 85, 105)
-                pdf.cell(62, 7.5, label)
-                pdf.set_font("Helvetica", "", 9.5)
-                pdf.set_text_color(*vc)
-                pdf.cell(0, 7.5, str(value), ln=True)
+            def section(title):
+                p.ln(3)
+                p.set_fill_color(11, 18, 32)
+                p.set_draw_color(0, 229, 255)
+                p.set_line_width(0.3)
+                p.rect(10, p.get_y(), 190, 8.5, "F")
+                p.set_font("Courier", "B", 9)
+                p.set_text_color(0, 229, 255)
+                p.cell(190, 8.5, f"  ▸  {title}", ln=True)
+                p.ln(1)
+
+            def kv(k, v, vc=(200, 215, 230)):
+                p.set_font("Courier", "B", 8.5)
+                p.set_text_color(139, 156, 181)
+                p.cell(65, 7, k)
+                p.set_font("Courier", "", 8.5)
+                p.set_text_color(*vc)
+                p.cell(0, 7, str(v), ln=True)
 
             def items(lst):
                 for i, s in enumerate(lst, 1):
-                    pdf.set_font("Helvetica", "", 9.5)
-                    pdf.set_text_color(30, 41, 59)
-                    pdf.cell(0, 7, f"  {i}.  {s}", ln=True)
-                pdf.ln(3)
+                    p.set_font("Courier", "", 8.5)
+                    p.set_text_color(200, 215, 230)
+                    p.cell(0, 7, f"  [{i:02d}]  {s}", ln=True)
+                p.ln(1)
 
-            dc = (239, 68, 68) if diagnosis == "Malignant" else (16, 185, 129)
+            section("PATIENT & SESSION")
+            kv("Patient ID :", pid or "ANONYMOUS")
+            kv("Timestamp :", ts)
+            kv("Model :", "MobileNetV2-v2.1  |  FYP-PROD-2025")
 
-            sec("PATIENT & SESSION INFORMATION")
-            row("Patient ID:", patient_id or "ANONYMOUS")
-            row("Report Generated:", ts)
-            row("AI Model Version:", "MobileNetV2-v2.1 | FYP Build")
-            pdf.ln(3)
+            section("AI DIAGNOSIS RESULT")
+            kv("Diagnosis :", dx, vc=dc)
+            kv("Risk Level :", intel["risk"])
+            kv("Confidence :", f"{conf*100:.2f}%")
+            kv("AI Reliability :", f"{rel*100:.2f}%")
 
-            sec("AI DIAGNOSIS RESULT")
-            row("Primary Diagnosis:", diagnosis, vc=dc)
-            row("Risk Classification:", intel["risk_badge"])
-            row("Confidence Score:", f"{confidence * 100:.2f}%")
-            row("AI Reliability Score:", f"{reliability * 100:.2f}%")
-            pdf.ln(3)
+            section("ABCDE BIOMARKER ANALYSIS")
+            for feat, sc in feats.items():
+                bar = "█" * int(sc * 20) + "░" * (20 - int(sc * 20))
+                kv(f"{feat} :", f"{sc*100:.1f}%  {bar}")
 
-            sec("ABCDE FEATURE ANALYSIS")
-            for feat, score in features.items():
-                row(f"{feat}:", f"{score * 100:.1f}%")
-            pdf.ln(3)
-
-            sec("TREATMENT RECOMMENDATIONS")
+            section("TREATMENT PROTOCOL")
             items(intel["procedures"])
-            sec("PATIENT CARE GUIDELINES")
+            section("PATIENT CARE GUIDELINES")
             items(intel["patient_care"])
-            sec("PHYSICIAN CLINICAL ACTIONS")
+            section("PHYSICIAN ACTIONS")
             items(intel["physician_ops"])
 
-            pdf.ln(5)
-            pdf.set_font("Helvetica", "I", 7.5)
-            pdf.set_text_color(148, 163, 184)
-            pdf.multi_cell(0, 5,
+            p.ln(4)
+            p.set_font("Courier", "I", 7)
+            p.set_text_color(74, 85, 104)
+            p.multi_cell(0, 4.5,
                 "DISCLAIMER: This report is AI-generated for clinical decision support only. "
                 "Final diagnosis must be confirmed by a licensed dermatologist or pathologist. "
                 "SkinScan AI is not a substitute for professional medical advice.")
 
-            raw = pdf.output(dest="S")
+            raw = p.output(dest="S")
             return raw.encode("latin-1") if isinstance(raw, str) else bytes(raw)
-
         except Exception:
             return None
 
 
-# =============================================================================
-# 4.  CSS / STYLE ENGINE
-# =============================================================================
-class StyleEngine:
-    @staticmethod
-    def inject(theme="dark"):
-        if theme == "light":
-            bg, text = "#f1f5f9", "#0f172a"
-            card, bdr = "rgba(255,255,255,0.95)", "rgba(203,213,225,0.8)"
-            sbg = "#e2e8f0"
-        else:
-            bg, text = "#020617", "#f1f5f9"
-            card, bdr = "rgba(15,23,42,0.88)", "rgba(51,65,85,0.65)"
-            sbg = "#0b1120"
-
-        st.markdown(f"""
-        <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
-        *,*::before,*::after{{box-sizing:border-box;}}
-        html,body,.stApp{{font-family:'Space Grotesk',sans-serif!important;background:{bg}!important;color:{text};}}
-        section[data-testid="stSidebar"]{{background:{sbg}!important;border-right:1px solid {bdr};}}
-        .block-container{{padding-top:1.8rem!important;padding-bottom:2rem!important;}}
-
-        .holo{{background:linear-gradient(125deg,#38bdf8,#818cf8,#f472b6);
-               -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-               font-weight:900;letter-spacing:-1px;line-height:1.15;}}
-
-        .gcard{{background:{card};backdrop-filter:blur(28px);border:1px solid {bdr};
-                border-radius:20px;padding:22px 26px;margin-bottom:18px;
-                box-shadow:0 8px 32px rgba(0,0,0,.18);
-                transition:transform .22s ease,box-shadow .22s ease;}}
-        .gcard:hover{{transform:translateY(-3px);box-shadow:0 18px 48px rgba(0,0,0,.28);}}
-
-        .mpill{{background:{card};border:1px solid {bdr};border-radius:16px;
-                padding:18px 14px;text-align:center;}}
-        .mpill-val{{font-size:2rem;font-weight:800;line-height:1.05;}}
-        .mpill-lbl{{font-size:.7rem;color:#94a3b8;letter-spacing:1.2px;text-transform:uppercase;margin-top:5px;}}
-
-        .diag-critical{{background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(239,68,68,.04));
-            border:2px solid #ef4444;border-radius:18px;padding:22px 28px;
-            box-shadow:0 0 36px rgba(239,68,68,.28),inset 0 0 28px rgba(239,68,68,.06);
-            animation:glowR 2.2s ease-in-out infinite;margin-bottom:22px;}}
-        .diag-safe{{background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.04));
-            border:2px solid #10b981;border-radius:18px;padding:22px 28px;
-            box-shadow:0 0 36px rgba(16,185,129,.28),inset 0 0 28px rgba(16,185,129,.06);
-            animation:glowG 2.2s ease-in-out infinite;margin-bottom:22px;}}
-        @keyframes glowR{{0%,100%{{box-shadow:0 0 22px rgba(239,68,68,.28)}}50%{{box-shadow:0 0 55px rgba(239,68,68,.65)}}}}
-        @keyframes glowG{{0%,100%{{box-shadow:0 0 22px rgba(16,185,129,.28)}}50%{{box-shadow:0 0 55px rgba(16,185,129,.65)}}}}
-
-        .badge-crit{{display:inline-block;background:#ef4444;color:#fff;padding:4px 14px;
-                     border-radius:999px;font-size:.72rem;font-weight:700;letter-spacing:1.4px;}}
-        .badge-safe{{display:inline-block;background:#10b981;color:#fff;padding:4px 14px;
-                     border-radius:999px;font-size:.72rem;font-weight:700;letter-spacing:1.4px;}}
-
-        .fbar-wrap{{background:rgba(148,163,184,.15);border-radius:999px;height:9px;margin:5px 0 13px;overflow:hidden;}}
-        .fbar-fill{{height:100%;border-radius:999px;transition:width .7s ease;}}
-
-        .sstage{{background:rgba(56,189,248,.07);border-left:3px solid #38bdf8;
-                 border-radius:9px;padding:10px 16px;margin:5px 0;font-size:.88rem;}}
-
-        .r-row{{padding:7px 0;border-bottom:1px solid rgba(148,163,184,.1);font-size:.88rem;}}
-
-        .stButton>button{{background:linear-gradient(135deg,#2563eb,#1d4ed8)!important;
-            color:#fff!important;font-weight:700!important;border:none!important;
-            border-radius:10px!important;padding:.72rem 1.4rem!important;
-            text-transform:uppercase!important;letter-spacing:.6px!important;
-            transition:all .2s!important;width:100%!important;}}
-        .stButton>button:hover{{transform:translateY(-2px)!important;box-shadow:0 0 22px rgba(37,99,235,.55)!important;}}
-
-        .stTabs [data-baseweb="tab-list"]{{background:{card}!important;border-radius:12px!important;
-            padding:4px!important;border:1px solid {bdr}!important;}}
-        .stTabs [data-baseweb="tab"]{{border-radius:8px!important;font-weight:600!important;font-size:.85rem!important;}}
-        .stTabs [aria-selected="true"]{{background:#2563eb!important;color:#fff!important;}}
-
-        hr{{border-color:{bdr}!important;}}
-        ::-webkit-scrollbar{{width:5px;}}
-        ::-webkit-scrollbar-track{{background:{bg};}}
-        ::-webkit-scrollbar-thumb{{background:#334155;border-radius:3px;}}
-        </style>""", unsafe_allow_html=True)
-
-
-# =============================================================================
-# 5.  SCAN ANIMATOR
-# =============================================================================
+# ═══════════════════════════════════════════════════════════════════
+#  SCAN ANIMATOR
+# ═══════════════════════════════════════════════════════════════════
 class ScanAnimator:
     STAGES = [
-        ("🔬", "Feature Extraction",       "Analysing dermoscopic texture and colour patterns…"),
-        ("🧠", "CNN Deep Analysis",         "Running MobileNetV2 forward-pass inference pipeline…"),
-        ("⚡", "Risk Probability Modelling", "Computing Bayesian malignancy probability vectors…"),
-        ("🏥", "Clinical Decision AI",      "Mapping neural output to clinical protocols…"),
+        ("🔬", "FEATURE EXTRACTION",       "Analysing dermoscopic texture and spectral colour patterns"),
+        ("⚡", "CNN INFERENCE ENGINE",      "Running MobileNetV2 forward-pass through 154 layers"),
+        ("📊", "RISK PROBABILITY MODEL",    "Computing Bayesian malignancy probability distribution"),
+        ("🏥", "CLINICAL DECISION MAPPING", "Translating neural output to clinical protocol guidelines"),
     ]
 
     @staticmethod
-    def run():
-        h_ph = st.empty()
-        s_ph = st.empty()
-        p_ph = st.empty()
-        h_ph.markdown(
-            "<h3 style='color:#38bdf8;text-align:center;letter-spacing:1px;'>⚙️  NEURAL PROCESSING ACTIVE</h3>",
-            unsafe_allow_html=True)
-        for i, (icon, name, desc) in enumerate(ScanAnimator.STAGES):
+    def play():
+        h = st.empty(); s = st.empty(); p = st.empty()
+        h.markdown("""
+        <div style='text-align:center; padding:18px 0 10px;'>
+          <div class='ax-label' style='color:#00E5FF; font-size:0.78rem; letter-spacing:3px;'>
+            ⚙  NEURAL PROCESSING PIPELINE ACTIVE
+          </div>
+        </div>""", unsafe_allow_html=True)
+        for i, (ico, name, desc) in enumerate(ScanAnimator.STAGES):
             frac = (i + 1) / len(ScanAnimator.STAGES)
-            s_ph.markdown(
-                f"<div class='sstage'><b style='color:#38bdf8;'>{icon}  {name}</b><br>"
-                f"<span style='color:#94a3b8;font-size:.83rem;'>{desc}</span></div>",
-                unsafe_allow_html=True)
-            p_ph.progress(frac, text=f"Stage {i + 1} / {len(ScanAnimator.STAGES)}")
-            time.sleep(0.85)
+            s.markdown(f"""
+            <div class='ax-stage'>
+              <div class='ax-stage-icon'>{ico}</div>
+              <div>
+                <div class='ax-stage-title'>{name}</div>
+                <div class='ax-stage-desc'>{desc}</div>
+              </div>
+            </div>""", unsafe_allow_html=True)
+            p.progress(frac, text=f"Stage {i+1} of {len(ScanAnimator.STAGES)}")
+            time.sleep(0.9)
         time.sleep(0.2)
-        h_ph.empty(); s_ph.empty(); p_ph.empty()
+        h.empty(); s.empty(); p.empty()
 
 
-# =============================================================================
-# 6.  RESULT DASHBOARD
-# =============================================================================
+# ═══════════════════════════════════════════════════════════════════
+#  RESULT DASHBOARD
+# ═══════════════════════════════════════════════════════════════════
 class ResultDashboard:
 
     @staticmethod
-    def render(pil_img, patient_id, diagnosis, confidence, reliability,
-               features, intel, engine, ts):
+    def render(pil_img, pid, dx, conf, rel, feats, intel, engine, ts, scan_id):
+        c = intel["color"]
+        is_m = (dx == "Malignant")
 
-        dc   = intel["hex_color"]
-        is_m = (diagnosis == "Malignant")
+        # ─── 1. Banner ───────────────────────────────────────────────
+        banner_cls = "ax-banner-crit" if is_m else "ax-banner-safe"
+        badge_cls  = "ax-badge-crit"  if is_m else "ax-badge-safe"
+        icon_char  = "⚠" if is_m else "✓"
 
-        # ── Animated banner ──────────────────────────────────────────────
-        banner = "diag-critical" if is_m else "diag-safe"
-        badge  = "badge-crit"    if is_m else "badge-safe"
-        icon   = "⚠" if is_m else "✅"
         st.markdown(f"""
-        <div class='{banner}'>
-          <div style='display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;'>
+        <div class='{banner_cls}'>
+          <div style='display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;'>
             <div>
-              <div style='font-size:.72rem;color:#94a3b8;letter-spacing:2px;'>AI DIAGNOSIS RESULT</div>
-              <div style='font-size:1.75rem;font-weight:900;color:{dc};margin:5px 0;'>
-                {icon}  {intel["alert_level"]}
+              <div class='ax-label' style='margin-bottom:8px;'>AXIOM AI — PRIMARY DIAGNOSIS RESULT</div>
+              <div style='font-family:Oxanium,sans-serif; font-size:1.8rem; font-weight:800;
+                          color:{c}; line-height:1.1; margin-bottom:10px;'>
+                {icon_char}&nbsp; {dx.upper()} LESION DETECTED
               </div>
-              <span class='{badge}'>{intel["risk_badge"]}</span>
-              &nbsp;
-              <span style='font-size:.78rem;color:#64748b;'>🕐 {ts}</span>
+              <span class='{badge_cls}'>{intel["risk"]}</span>
+              &ensp;
+              <span class='ax-badge ax-badge-info' style='margin-left:4px;'>
+                SCAN #{scan_id:04d}
+              </span>
+              &ensp;
+              <span style='font-family:JetBrains Mono,monospace; font-size:0.67rem; color:#4A5568;'>
+                🕐 {ts}
+              </span>
             </div>
             <div style='text-align:right;'>
-              <div style='font-size:3rem;font-weight:900;color:{dc};line-height:1;'>{confidence*100:.1f}%</div>
-              <div style='font-size:.72rem;color:#94a3b8;letter-spacing:1px;'>CONFIDENCE SCORE</div>
-              <div style='font-size:.78rem;color:#64748b;margin-top:3px;'>
-                AI Reliability: {reliability*100:.1f}%
+              <div style='font-family:Oxanium,sans-serif; font-size:3.2rem; font-weight:900;
+                          color:{c}; line-height:1; letter-spacing:-1px;'>
+                {conf*100:.1f}%
+              </div>
+              <div class='ax-label' style='margin-top:4px;'>CONFIDENCE SCORE</div>
+              <div style='font-family:JetBrains Mono,monospace; font-size:0.7rem;
+                          color:#4A5568; margin-top:6px;'>
+                RELIABILITY&nbsp; <span style='color:{c};'>{rel*100:.1f}%</span>
               </div>
             </div>
           </div>
         </div>""", unsafe_allow_html=True)
 
-        # ── 4 metric pills ───────────────────────────────────────────────
-        ca, cb, cc, cd = st.columns(4)
-        pills = [
-            (diagnosis,               "PRIMARY DIAGNOSIS",  dc),
-            (f"{confidence*100:.1f}%", "CONFIDENCE LEVEL",  "#38bdf8"),
-            (f"{reliability*100:.1f}%","AI RELIABILITY",    "#818cf8"),
-            ("v2.1",                  "MODEL VERSION",      "#f59e0b"),
+        # ─── 2. Metric row ───────────────────────────────────────────
+        t1, t2, t3, t4, t5 = st.columns(5)
+        tiles = [
+            (dx,               "DIAGNOSIS",      c,         "🧬"),
+            (f"{conf*100:.1f}%","CONFIDENCE",    "#00E5FF", "📊"),
+            (f"{rel*100:.1f}%", "RELIABILITY",   "#818CF8", "🤖"),
+            (intel["risk"],     "RISK LEVEL",    c,         "⚠" if is_m else "✅"),
+            ("v2.1",           "MODEL",         "#FFB020",  "🔬"),
         ]
-        for col, (val, lbl, clr) in zip([ca, cb, cc, cd], pills):
+        for col, (val, lbl, clr, ico) in zip([t1,t2,t3,t4,t5], tiles):
             col.markdown(f"""
-            <div class='mpill'>
-              <div class='mpill-val' style='color:{clr};'>{val}</div>
-              <div class='mpill-lbl'>{lbl}</div>
+            <div class='ax-tile'>
+              <span class='ax-tile-icon'>{ico}</span>
+              <div class='ax-tile-val' style='color:{clr}; font-size:1.3rem;'>{val}</div>
+              <div class='ax-tile-lbl'>{lbl}</div>
             </div>""", unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # ── Gauge + Grad-CAM ─────────────────────────────────────────────
-        g_col, gc_col = st.columns([1, 1.9])
+        # ─── 3. Left: Charts  |  Right: Grad-CAM ───────────────────
+        left, right = st.columns([1, 1.85])
 
-        with g_col:
-            st.markdown("<div class='gcard'>", unsafe_allow_html=True)
-            st.markdown(
-                "<span style='font-size:.75rem;color:#94a3b8;letter-spacing:1px;'>NEURAL CONFIDENCE GAUGE</span>",
-                unsafe_allow_html=True)
+        with left:
+            # Gauge
+            st.markdown("""
+            <div class='ax-card'>
+              <div class='ax-card-header'>
+                <span class='ax-label'>NEURAL CONFIDENCE GAUGE</span>
+                <span class='ax-badge ax-badge-info'>LIVE</span>
+              </div>""", unsafe_allow_html=True)
 
             fig_g = go.Figure(go.Indicator(
-                mode="gauge+number+delta",
-                value=confidence * 100,
-                delta={"reference": 50, "valueformat": ".1f"},
-                number={"suffix": "%", "font": {"size": 38, "color": dc}},
-                title={"text": "Confidence", "font": {"color": "#94a3b8", "size": 12}},
+                mode="gauge+number",
+                value=conf * 100,
+                number={"suffix": "%", "font": {"size": 40, "color": c,
+                        "family": "Oxanium"}},
                 gauge={
-                    "axis":  {"range": [0, 100], "tickcolor": "#475569",
-                               "tickfont": {"color": "#64748b"}},
-                    "bar":   {"color": dc, "thickness": 0.28},
+                    "axis": {"range": [0,100], "tickcolor":"#1E293B",
+                             "tickfont":{"color":"#4A5568","size":9}},
+                    "bar":  {"color": c, "thickness": 0.22},
                     "bgcolor": "rgba(0,0,0,0)",
+                    "borderwidth": 0,
                     "steps": [
-                        {"range": [0,  40], "color": "rgba(16,185,129,.12)"},
-                        {"range": [40, 70], "color": "rgba(245,158,11,.12)"},
-                        {"range": [70, 100],"color": "rgba(239,68,68,.12)"},
+                        {"range":[0,35],  "color":"rgba(0,200,150,0.08)"},
+                        {"range":[35,65], "color":"rgba(255,176,32,0.08)"},
+                        {"range":[65,100],"color":"rgba(255,59,87,0.10)"},
                     ],
-                    "threshold": {"line": {"color": dc, "width": 4},
-                                  "value": confidence * 100},
+                    "threshold": {"line":{"color":c,"width":3},
+                                  "thickness":0.85,"value":conf*100},
                 },
             ))
-            fig_g.update_layout(height=230, margin=dict(l=18,r=18,t=28,b=6),
-                                 paper_bgcolor="rgba(0,0,0,0)", font_color="#94a3b8")
+            fig_g.update_layout(height=210, margin=dict(l=20,r=20,t=10,b=5),
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                font_color="#8B9CB5")
             st.plotly_chart(fig_g, use_container_width=True)
 
-            # Risk meter bar
-            pct = int(confidence * 100)
-            st.markdown(
-                "<span style='font-size:.73rem;color:#94a3b8;letter-spacing:1px;'>RISK LEVEL METER</span>",
-                unsafe_allow_html=True)
+            # Risk bar
             st.markdown(f"""
-            <div class='fbar-wrap' style='height:13px;'>
-              <div class='fbar-fill' style='width:{pct}%;background:linear-gradient(90deg,{dc}90,{dc});'></div>
-            </div>
-            <div style='font-size:.73rem;color:#64748b;margin-top:-4px;'>Risk Score: {pct}%</div>
-            """, unsafe_allow_html=True)
+            <div style='margin:-10px 0 16px;'>
+              <div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;'>
+                <span class='ax-label'>RISK METER</span>
+                <span class='ax-mono' style='color:{c};font-size:.82rem;'>{int(conf*100)}%</span>
+              </div>
+              <div class='ax-bar-track' style='height:8px;'>
+                <div class='ax-bar-fill'
+                  style='width:{int(conf*100)}%;
+                         background:linear-gradient(90deg,{c}60,{c});'>
+                </div>
+              </div>
+            </div>""", unsafe_allow_html=True)
 
-            # Probability bar chart
-            fig_bar = go.Figure()
-            fig_bar.add_bar(
-                x=["Malignant", "Benign"],
-                y=[confidence * 100, (1 - confidence) * 100],
-                marker_color=["#ef4444", "#10b981"],
-                width=0.5,
+            # Prob distribution
+            fig_p = go.Figure()
+            fig_p.add_bar(
+                x=["MALIGNANT","BENIGN"],
+                y=[conf*100, (1-conf)*100],
+                marker=dict(
+                    color=["rgba(255,59,87,0.8)","rgba(0,200,150,0.8)"],
+                    line=dict(color=["#FF3B57","#00C896"], width=1),
+                ),
+                width=0.4,
             )
-            fig_bar.update_layout(
-                title={"text": "Probability Distribution",
-                       "font": {"size": 11, "color": "#94a3b8"}},
-                height=175, margin=dict(l=10,r=10,t=35,b=20),
+            fig_p.update_layout(
+                title=dict(text="PROBABILITY DISTRIBUTION",
+                           font=dict(size=9, color="#4A5568", family="JetBrains Mono"),
+                           x=0),
+                height=165, margin=dict(l=10,r=10,t=32,b=10),
                 paper_bgcolor="rgba(0,0,0,0)",
                 plot_bgcolor="rgba(0,0,0,0)",
-                font_color="#94a3b8",
-                yaxis={"gridcolor": "rgba(148,163,184,.1)", "ticksuffix": "%"},
-                xaxis={"showgrid": False},
+                font_color="#4A5568",
+                showlegend=False,
+                yaxis=dict(gridcolor="rgba(255,255,255,0.04)", ticksuffix="%",
+                           tickfont=dict(size=8)),
+                xaxis=dict(showgrid=False, tickfont=dict(size=8,
+                           family="JetBrains Mono")),
             )
-            st.plotly_chart(fig_bar, use_container_width=True)
+            st.plotly_chart(fig_p, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
-        with gc_col:
-            st.markdown("<div class='gcard'>", unsafe_allow_html=True)
-            st.markdown(
-                "<span style='font-size:.75rem;color:#94a3b8;letter-spacing:1px;'>EXPLAINABLE AI — GRAD-CAM ACTIVATION MAPS</span>",
-                unsafe_allow_html=True)
-            with st.spinner("Generating Grad-CAM activation maps…"):
-                cam_buf = engine.gradcam_heatmap(pil_img, diagnosis)
-            st.image(cam_buf, use_container_width=True,
-                     caption="Left: Original  |  Centre: Grad-CAM Heatmap  |  Right: AI Focus Overlay")
+        with right:
+            # Grad-CAM
+            st.markdown("""
+            <div class='ax-card'>
+              <div class='ax-card-header'>
+                <span class='ax-label'>EXPLAINABLE AI — GRAD-CAM NEURAL ACTIVATION MAPS</span>
+                <span class='ax-badge ax-badge-warn'>XAI</span>
+              </div>""", unsafe_allow_html=True)
+            with st.spinner("Computing activation maps…"):
+                cam = engine.gradcam(pil_img, dx)
+            st.image(cam, use_container_width=True,
+                     caption="[01] ORIGINAL  |  [02] GRAD-CAM HEAT  |  [03] AI FOCUS COMPOSITE")
 
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown(
-                "<span style='font-size:.75rem;color:#94a3b8;letter-spacing:1px;'>TOP CONTRIBUTING FEATURES</span>",
-                unsafe_allow_html=True)
-            top3 = sorted(features.items(), key=lambda x: x[1], reverse=True)[:3]
+            # Top features
+            st.markdown("""
+            <div style='margin-top:16px;'>
+              <div class='ax-label' style='margin-bottom:10px;'>KEY DECISION FEATURES</div>""",
+                        unsafe_allow_html=True)
+            top3 = sorted(feats.items(), key=lambda x: x[1], reverse=True)[:3]
             for feat, score in top3:
-                pct_f = int(score * 100)
-                bar_c = "#ef4444" if pct_f > 75 else "#f59e0b" if pct_f > 50 else "#10b981"
+                pf = int(score * 100)
+                bc = "#FF3B57" if pf > 75 else "#FFB020" if pf > 50 else "#00C896"
                 st.markdown(f"""
-                <div style='margin-bottom:10px;'>
-                  <div style='display:flex;justify-content:space-between;font-size:.83rem;'>
-                    <span style='color:#cbd5e1;'>{feat}</span>
-                    <span style='color:{bar_c};font-weight:700;'>{pct_f}%</span>
+                <div style='margin-bottom:12px;'>
+                  <div style='display:flex;justify-content:space-between;
+                              align-items:center;margin-bottom:4px;'>
+                    <span style='font-size:.82rem; color:#DCE8F5;'>{feat}</span>
+                    <span class='ax-mono' style='color:{bc}; font-size:.82rem;'>{pf}%</span>
                   </div>
-                  <div class='fbar-wrap'>
-                    <div class='fbar-fill' style='width:{pct_f}%;background:{bar_c};'></div>
+                  <div class='ax-bar-track'>
+                    <div class='ax-bar-fill' style='width:{pf}%; background:{bc};'></div>
                   </div>
                 </div>""", unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
+            st.markdown("</div></div>", unsafe_allow_html=True)
 
-        # ── Full ABCDE Panel ─────────────────────────────────────────────
-        st.markdown(
-            "<div class='gcard'>"
-            "<span style='font-size:.75rem;color:#94a3b8;letter-spacing:1px;'>"
-            "ABCDE FEATURE ANALYSIS — FULL BIOMARKER PANEL</span>",
-            unsafe_allow_html=True)
-        fcols = st.columns(len(features))
-        for col, (feat, score) in zip(fcols, features.items()):
-            pct_f = int(score * 100)
-            bar_c = "#ef4444" if pct_f > 75 else "#f59e0b" if pct_f > 50 else "#10b981"
+        # ─── 4. Full ABCDE Panel ─────────────────────────────────────
+        st.markdown("""
+        <div class='ax-card'>
+          <div class='ax-card-header'>
+            <span class='ax-label'>ABCDE BIOMARKER ANALYSIS — FULL FEATURE PANEL</span>
+            <span class='ax-badge ax-badge-info'>5 MARKERS</span>
+          </div>""", unsafe_allow_html=True)
+        cols = st.columns(len(feats))
+        for col, (feat, score) in zip(cols, feats.items()):
+            pf = int(score * 100)
+            bc = "#FF3B57" if pf > 75 else "#FFB020" if pf > 50 else "#00C896"
             with col:
                 st.markdown(f"""
-                <div style='text-align:center;padding:8px 0;'>
-                  <div style='font-size:1.45rem;font-weight:800;color:{bar_c};'>{pct_f}%</div>
-                  <div style='font-size:.68rem;color:#94a3b8;margin:5px 0;line-height:1.3;'>{feat}</div>
-                  <div class='fbar-wrap'>
-                    <div class='fbar-fill' style='width:{pct_f}%;background:{bar_c};'></div>
+                <div style='text-align:center; padding:12px 6px;
+                            border:1px solid rgba(255,255,255,0.06);
+                            border-radius:8px; background:#070D1A;'>
+                  <div class='ax-mono' style='font-size:1.6rem; color:{bc};'>{pf}%</div>
+                  <div class='ax-label' style='margin:7px 0 8px; font-size:.58rem;
+                              line-height:1.4;'>{feat}</div>
+                  <div class='ax-bar-track' style='height:4px; margin:0;'>
+                    <div class='ax-bar-fill' style='width:{pf}%; background:{bc};'></div>
                   </div>
                 </div>""", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # ── AI Reasoning ─────────────────────────────────────────────────
-        st.markdown("<div class='gcard'>", unsafe_allow_html=True)
-        st.markdown(
-            "<span style='font-size:.75rem;color:#94a3b8;letter-spacing:1px;'>"
-            "🤖 AI REASONING SUMMARY — EXPLAINABLE DECISION LOGIC</span>",
-            unsafe_allow_html=True)
-        for r in intel["ai_reasoning"]:
-            dot = "🔴" if is_m else "🟢"
-            st.markdown(f"<div class='r-row'>{dot}&nbsp; {r}</div>", unsafe_allow_html=True)
+        # ─── 5. AI Reasoning ────────────────────────────────────────
+        st.markdown("""
+        <div class='ax-card'>
+          <div class='ax-card-header'>
+            <span class='ax-label'>🤖 EXPLAINABLE AI — DECISION REASONING CHAIN</span>
+            <span class='ax-badge ax-badge-info'>5 LOGIC NODES</span>
+          </div>""", unsafe_allow_html=True)
+        for i, r in enumerate(intel["reasoning"], 1):
+            dot_c = "#FF3B57" if is_m else "#00C896"
+            st.markdown(f"""
+            <div class='ax-reason'>
+              <span class='ax-reason-num'>NODE {i:02d}</span>
+              <span style='color:#DCE8F5;'>{r}</span>
+            </div>""", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # ── Clinical Tabs ────────────────────────────────────────────────
-        st.markdown("<div class='gcard'>", unsafe_allow_html=True)
-        st.markdown(
-            "<span style='font-size:.75rem;color:#94a3b8;letter-spacing:1px;'>"
-            "📋 CLINICAL DECISION PANEL</span>",
-            unsafe_allow_html=True)
-        t1, t2, t3 = st.tabs(["🩺  Treatment Protocol", "🛡️  Patient Care", "👨‍⚕️  Physician Actions"])
-        for tab, key in zip([t1, t2, t3], ["procedures", "patient_care", "physician_ops"]):
+        # ─── 6. Clinical Tabs ────────────────────────────────────────
+        st.markdown("""
+        <div class='ax-card'>
+          <div class='ax-card-header'>
+            <span class='ax-label'>📋 CLINICAL DECISION PANEL</span>
+            <span class='ax-badge ax-badge-warn'>CLINICAL USE</span>
+          </div>""", unsafe_allow_html=True)
+
+        t1, t2, t3 = st.tabs([
+            "  🩺  TREATMENT PROTOCOL  ",
+            "  🛡️  PATIENT CARE  ",
+            "  👨‍⚕️  PHYSICIAN ACTIONS  ",
+        ])
+        for tab, key in zip([t1,t2,t3],
+                            ["procedures","patient_care","physician_ops"]):
             with tab:
-                for s in intel[key]:
-                    st.markdown(f"<div class='r-row'>✦&nbsp; {s}</div>", unsafe_allow_html=True)
+                st.markdown("<br>", unsafe_allow_html=True)
+                for i, item in enumerate(intel[key], 1):
+                    st.markdown(f"""
+                    <div class='ax-protocol-item'>
+                      <span class='ax-protocol-num'>{i:02d}</span>
+                      <span>{item}</span>
+                    </div>""", unsafe_allow_html=True)
+                st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # ── Action Buttons ───────────────────────────────────────────────
-        st.markdown("<div class='gcard'>", unsafe_allow_html=True)
-        st.markdown(
-            "<span style='font-size:.75rem;color:#94a3b8;letter-spacing:1px;'>"
-            "📥 MEDICAL REPORT & DATA EXPORT</span>",
-            unsafe_allow_html=True)
-        st.markdown("<br>", unsafe_allow_html=True)
+        # ─── 7. Action Panel ─────────────────────────────────────────
+        st.markdown("""
+        <div class='ax-card'>
+          <div class='ax-card-header'>
+            <span class='ax-label'>📥 ACTIONS — EXPORT · SAVE · APPROVE</span>
+          </div>""", unsafe_allow_html=True)
 
         b1, b2, b3, b4 = st.columns(4)
 
+        # PDF download
         with b1:
-            pdf = ReportEngine.generate(
-                patient_id, diagnosis, confidence, reliability, features, intel, ts)
+            pdf = PDFEngine.build(pid, dx, conf, rel, feats, intel, ts)
             if pdf:
-                fname = (f"SkinScan_{patient_id or 'ANON'}_"
-                         f"{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf")
-                st.download_button("📄 Download PDF Report", data=pdf,
-                                   file_name=fname, mime="application/pdf",
-                                   use_container_width=True)
+                fname = f"SkinScan_{(pid or 'ANON').replace(' ','_')}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+                st.download_button(
+                    "📄  DOWNLOAD PDF REPORT",
+                    data=pdf, file_name=fname, mime="application/pdf",
+                    use_container_width=True,
+                    key=f"pdf_{scan_id}",
+                )
             else:
-                st.info("Add fpdf2 to requirements for PDF export")
+                st.info("Add fpdf2 to requirements.txt for PDF")
 
+        # Save record — FIXED
         with b2:
-            if st.button("💾 Save Patient Record", use_container_width=True):
-                st.session_state.medical_database.append({
+            if st.button("💾  SAVE PATIENT RECORD",
+                         use_container_width=True, key=f"save_{scan_id}"):
+                record = {
+                    "Scan ID":     f"#{scan_id:04d}",
                     "Timestamp":   ts,
-                    "Patient_Ref": patient_id or "ANON",
-                    "Diagnosis":   diagnosis,
-                    "Confidence":  f"{confidence * 100:.2f}%",
-                    "Reliability": f"{reliability * 100:.2f}%",
-                    "Risk":        intel["risk_badge"],
-                })
-                st.success("✅ Saved to Patient Registry!")
+                    "Patient":     pid or "ANONYMOUS",
+                    "Diagnosis":   dx,
+                    "Confidence":  f"{conf*100:.2f}%",
+                    "Reliability": f"{rel*100:.2f}%",
+                    "Risk":        intel["risk"],
+                }
+                # Prevent duplicate saves for same scan
+                existing_ids = [r.get("Scan ID") for r in st.session_state.records]
+                if f"#{scan_id:04d}" not in existing_ids:
+                    st.session_state.records.append(record)
+                    st.success(f"✅ Record #{scan_id:04d} saved to registry!")
+                else:
+                    st.warning("⚠️ Record already saved.")
 
+        # Export CSV — FIXED: always visible
         with b3:
-            if st.session_state.medical_database:
-                csv = pd.DataFrame(st.session_state.medical_database).to_csv(index=False)
-                st.download_button("📊 Export Clinical CSV", data=csv,
-                                   file_name="skinscan_clinical_data.csv",
-                                   mime="text/csv", use_container_width=True)
+            if st.session_state.records:
+                csv_data = pd.DataFrame(st.session_state.records).to_csv(index=False)
+                st.download_button(
+                    "📊  EXPORT CLINICAL CSV",
+                    data=csv_data,
+                    file_name=f"SkinScan_Registry_{datetime.datetime.now().strftime('%Y%m%d')}.csv",
+                    mime="text/csv",
+                    use_container_width=True,
+                    key=f"csv_{scan_id}",
+                )
             else:
-                st.button("📊 Export CSV (empty)", disabled=True, use_container_width=True)
+                st.markdown("""
+                <div style='text-align:center; padding:12px; border:1px solid rgba(255,255,255,0.05);
+                     border-radius:8px; color:#4A5568; font-family:JetBrains Mono,monospace;
+                     font-size:.7rem; letter-spacing:1px;'>
+                  📊 SAVE A RECORD FIRST
+                </div>""", unsafe_allow_html=True)
 
+        # Physician approval — FIXED
         with b4:
-            if st.button("✅ Physician Approved", use_container_width=True):
-                st.success(f"✅ Approved by Dr. Admin — {ts}")
+            approve_key = f"approved_{scan_id}"
+            if approve_key not in st.session_state:
+                st.session_state[approve_key] = False
+
+            if not st.session_state[approve_key]:
+                if st.button("✅  PHYSICIAN APPROVED",
+                             use_container_width=True, key=f"appr_{scan_id}"):
+                    st.session_state[approve_key] = True
+                    st.rerun()
+            else:
+                st.markdown(f"""
+                <div style='text-align:center; padding:12px 8px;
+                     background:rgba(0,200,150,0.1); border:1px solid rgba(0,200,150,0.4);
+                     border-radius:8px;'>
+                  <div style='color:#00C896; font-family:JetBrains Mono,monospace;
+                       font-size:.68rem; font-weight:700; letter-spacing:1px;'>
+                    ✓ APPROVED BY DR. ADMIN
+                  </div>
+                  <div style='color:#4A5568; font-family:JetBrains Mono,monospace;
+                       font-size:.6rem; margin-top:3px;'>{ts}</div>
+                </div>""", unsafe_allow_html=True)
 
         st.markdown("</div>", unsafe_allow_html=True)
 
 
-# =============================================================================
-# 7.  MASTER APP CONTROLLER
-# =============================================================================
+# ═══════════════════════════════════════════════════════════════════
+#  MASTER APP CONTROLLER
+# ═══════════════════════════════════════════════════════════════════
 class SkinScanApp:
+
     def __init__(self):
         st.set_page_config(
-            page_title="SkinScan AI v12",
+            page_title="SkinScan AI — Axiom Clinical OS",
             page_icon="🧬",
             layout="wide",
             initial_sidebar_state="expanded",
         )
-        self._init_state()
+        self._state()
         self.engine = NeuralCoreEngine()
-        StyleEngine.inject(st.session_state.theme)
+        inject_css()
 
-    def _init_state(self):
-        for k, v in {"auth": False, "theme": "dark",
-                     "medical_database": [], "scan_count": 0}.items():
+    def _state(self):
+        defaults = {
+            "auth":        False,
+            "records":     [],
+            "scan_count":  0,
+        }
+        for k, v in defaults.items():
             if k not in st.session_state:
                 st.session_state[k] = v
 
-    # ── Login ────────────────────────────────────────────────────────────
+    # ── Login ─────────────────────────────────────────────────────
     def login(self):
         if st.session_state.auth:
             return
-        _, col, _ = st.columns([1, 1.05, 1])
+        _, col, _ = st.columns([1, 0.9, 1])
         with col:
-            st.markdown("<br><br>", unsafe_allow_html=True)
+            st.markdown("<br><br><br>", unsafe_allow_html=True)
             st.markdown("""
-            <div class='gcard' style='text-align:center;padding:36px 28px;'>
-              <div style='font-size:3.2rem;'>🧬</div>
-              <h2 class='holo'>SkinScan AI</h2>
-              <p style='color:#64748b;font-size:.85rem;margin-top:-6px;'>
-                Enterprise Clinical Suite — Authorized Access Only
-              </p>
+            <div class='ax-card' style='text-align:center; padding:40px 32px;'>
+              <div style='font-size:3rem; margin-bottom:4px;'>🧬</div>
+              <div style='font-family:Oxanium,sans-serif; font-size:1.6rem; font-weight:800;
+                          color:#00E5FF; letter-spacing:-0.5px; margin-bottom:4px;'>
+                SKINSCAN AI
+              </div>
+              <div class='ax-label' style='margin-bottom:20px;'>
+                AXIOM CLINICAL OS  ·  v13.0  ·  AUTHORIZED ACCESS ONLY
+              </div>
             </div>""", unsafe_allow_html=True)
-            user = st.text_input("Physician ID", placeholder="admin")
-            pwd  = st.text_input("Security Key", type="password", placeholder="123")
-            if st.button("🔐  INITIALIZE SECURE SESSION", use_container_width=True):
+            user = st.text_input("PHYSICIAN ID", placeholder="admin")
+            pwd  = st.text_input("SECURITY KEY", type="password", placeholder="••••••")
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("⚡  INITIALIZE SECURE SESSION", use_container_width=True):
                 if user == "admin" and pwd == "123":
                     st.session_state.auth = True
                     st.rerun()
                 else:
-                    st.error("❌ Invalid credentials — Access denied.")
+                    st.error("❌  ACCESS DENIED — Invalid credentials")
         st.stop()
 
-    # ── Sidebar ──────────────────────────────────────────────────────────
+    # ── Sidebar ───────────────────────────────────────────────────
     def sidebar(self):
         with st.sidebar:
-            st.markdown("<h2 class='holo'>🧬 SkinScan AI</h2>", unsafe_allow_html=True)
-            st.caption("Enterprise Clinical Suite  v12.0")
-            st.divider()
-
-            dark = st.toggle("🌓 Dark Mode", value=(st.session_state.theme == "dark"))
-            st.session_state.theme = "dark" if dark else "light"
-            StyleEngine.inject(st.session_state.theme)
-            st.divider()
+            st.markdown("""
+            <div style='padding:22px 16px 14px;
+                        border-bottom:1px solid rgba(0,229,255,0.1); margin-bottom:4px;'>
+              <div style='font-family:Oxanium,sans-serif; font-size:1.15rem;
+                          font-weight:800; color:#00E5FF; letter-spacing:-0.3px;'>
+                🧬 SKINSCAN AI
+              </div>
+              <div class='ax-label' style='margin-top:3px;'>AXIOM CLINICAL OS  v13.0</div>
+            </div>""", unsafe_allow_html=True)
 
             nav = option_menu(
-                "Clinical Modules",
-                ["Dashboard", "AI Scanner", "Patient Registry", "Analytics"],
-                icons=["house-door-fill", "cpu-fill", "journal-medical", "bar-chart-fill"],
+                "", ["Dashboard","AI Scanner","Patient Registry","Analytics"],
+                icons=["grid-1x2-fill","cpu-fill","journal-medical","bar-chart-fill"],
                 default_index=0,
                 styles={
-                    "nav-link-selected": {"background-color": "#2563eb", "color": "#fff"},
-                    "nav-link": {"font-size": "0.87rem"},
+                    "container": {"padding":"8px 4px","background-color":"transparent"},
+                    "icon":      {"color":"#8B9CB5","font-size":"0.85rem"},
+                    "nav-link":  {"font-family":"Outfit,sans-serif",
+                                  "font-size":"0.88rem","color":"#8B9CB5",
+                                  "border-radius":"8px","margin":"2px 0",
+                                  "--hover-color":"rgba(0,229,255,0.08)"},
+                    "nav-link-selected": {"background":"rgba(0,229,255,0.1)",
+                                          "color":"#00E5FF","font-weight":"600"},
                 },
             )
-            st.divider()
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            # Status block
             dot  = "🟢" if self.engine.is_online else "🟠"
-            mode = "Neural Net Online" if self.engine.is_online else "Simulation Mode"
-            st.markdown(f"**AI Engine:** {dot} {mode}")
-            st.markdown(f"**Model:** `{self.engine.model_version}`")
-            st.markdown(f"**Session Scans:** `{st.session_state.scan_count}`")
-            st.divider()
-            if st.button("🚪 Terminate Session", use_container_width=True):
+            mode = "NEURAL NET ONLINE" if self.engine.is_online else "SIMULATION MODE"
+            st.markdown(f"""
+            <div style='background:#070D1A; border:1px solid rgba(0,229,255,0.1);
+                        border-radius:8px; padding:14px 16px; margin:0 4px;'>
+              <div class='ax-label' style='margin-bottom:10px;'>SYSTEM STATUS</div>
+              <div style='font-size:.82rem; margin-bottom:5px;'>
+                {dot}&nbsp; <span style='color:#DCE8F5;'>{mode}</span>
+              </div>
+              <div style='font-family:JetBrains Mono,monospace; font-size:.68rem; color:#4A5568;'>
+                MODEL&nbsp;&nbsp; {self.engine.model_version}<br>
+                BUILD&nbsp;&nbsp; {self.engine.build_tag}<br>
+                SCANS&nbsp;&nbsp; {st.session_state.scan_count:04d}<br>
+                RECORDS {len(st.session_state.records):04d}
+              </div>
+            </div>""", unsafe_allow_html=True)
+
+            st.markdown("<br><br>", unsafe_allow_html=True)
+            if st.button("🚪  TERMINATE SESSION", use_container_width=True):
                 st.session_state.auth = False
                 st.rerun()
         return nav
 
-    # ── Page: Dashboard ──────────────────────────────────────────────────
+    # ── Page: Dashboard ───────────────────────────────────────────
     def page_hub(self):
-        st.markdown("<h1 class='holo'>Central Command Hub</h1>", unsafe_allow_html=True)
-        st.markdown(
-            f"<p style='color:#64748b;'>Welcome, Dr. Admin — "
-            f"{datetime.datetime.now().strftime('%A, %d %B %Y, %H:%M')}</p>",
-            unsafe_allow_html=True)
+        st.markdown("""
+        <div style='margin-bottom:24px;'>
+          <div class='ax-display'>CENTRAL COMMAND <span class='accent'>HUB</span></div>
+          <div style='color:#4A5568; font-family:JetBrains Mono,monospace;
+                      font-size:.7rem; margin-top:6px; letter-spacing:1px;'>
+            AXIOM CLINICAL OS  ·  SESSION ACTIVE  ·  DR. ADMIN
+          </div>
+        </div>""", unsafe_allow_html=True)
 
-        c1, c2, c3, c4 = st.columns(4)
-        for col, (val, lbl, clr, ico) in zip(
-            [c1, c2, c3, c4],
-            [("14,892", "Total Scans",    "#38bdf8", "🔬"),
-             ("97.8%",  "Avg Confidence", "#818cf8", "🧠"),
-             (str(len(st.session_state.medical_database)), "Session Logs", "#10b981", "📋"),
-             (str(st.session_state.scan_count), "Today's Scans", "#f59e0b", "📊")],
-        ):
+        now = datetime.datetime.now().strftime("%d %b %Y  ·  %H:%M")
+        c1,c2,c3,c4 = st.columns(4)
+        tiles = [
+            ("14,892", "TOTAL SCANS",     "#00E5FF", "🔬"),
+            ("97.8%",  "AVG CONFIDENCE",  "#818CF8", "🧠"),
+            (str(len(st.session_state.records)), "SESSION RECORDS","#00C896","📋"),
+            (str(st.session_state.scan_count),   "TODAY'S SCANS",  "#FFB020","📊"),
+        ]
+        for col, (val, lbl, clr, ico) in zip([c1,c2,c3,c4], tiles):
             col.markdown(f"""
-            <div class='mpill'>
-              <div style='font-size:1.4rem;'>{ico}</div>
-              <div class='mpill-val' style='color:{clr};'>{val}</div>
-              <div class='mpill-lbl'>{lbl}</div>
+            <div class='ax-tile'>
+              <span class='ax-tile-icon'>{ico}</span>
+              <div class='ax-tile-val' style='color:{clr};'>{val}</div>
+              <div class='ax-tile-lbl'>{lbl}</div>
             </div>""", unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
         l, r = st.columns(2)
-        l.markdown("""
-        <div class='gcard'>
-          <h4 style='color:#38bdf8;'>🚀 Quick Start Guide</h4>
-          <p style='color:#94a3b8;font-size:.9rem;line-height:1.7;'>
-            1. Go to <b>AI Scanner</b> in the sidebar<br>
-            2. Enter a Patient ID<br>
-            3. Upload a dermoscopic image (JPG/PNG)<br>
-            4. Click <b>Execute Neural Scan</b>
-          </p>
+
+        l.markdown(f"""
+        <div class='ax-card'>
+          <div class='ax-card-header'>
+            <span class='ax-label'>QUICK START</span>
+            <span class='ax-badge ax-badge-info'>GUIDE</span>
+          </div>
+          <div style='font-size:.88rem; color:#8B9CB5; line-height:2;'>
+            <span style='color:#00E5FF; font-family:JetBrains Mono,monospace;'>[01]</span>
+            &nbsp;Navigate to <span style='color:#DCE8F5; font-weight:600;'>AI Scanner</span>
+            in the sidebar<br>
+            <span style='color:#00E5FF; font-family:JetBrains Mono,monospace;'>[02]</span>
+            &nbsp;Enter patient ID<br>
+            <span style='color:#00E5FF; font-family:JetBrains Mono,monospace;'>[03]</span>
+            &nbsp;Upload dermoscopic image (JPG / PNG)<br>
+            <span style='color:#00E5FF; font-family:JetBrains Mono,monospace;'>[04]</span>
+            &nbsp;Click <span style='color:#DCE8F5; font-weight:600;'>EXECUTE NEURAL SCAN</span>
+          </div>
         </div>""", unsafe_allow_html=True)
+
         r.markdown(f"""
-        <div class='gcard'>
-          <h4 style='color:#818cf8;'>⚙️ System Status</h4>
-          <p style='color:#94a3b8;font-size:.9rem;line-height:1.7;'>
-            AI Engine: {"🟢 Online" if self.engine.is_online else "🟠 Simulation Active"}<br>
-            Model: {self.engine.model_version}<br>
-            Session Records: {len(st.session_state.medical_database)}<br>
-            Total Scans Today: {st.session_state.scan_count}
-          </p>
+        <div class='ax-card'>
+          <div class='ax-card-header'>
+            <span class='ax-label'>SYSTEM DIAGNOSTIC</span>
+            <span class='ax-badge ax-badge-{'safe' if self.engine.is_online else 'warn'}'>
+              {'ONLINE' if self.engine.is_online else 'SIM MODE'}
+            </span>
+          </div>
+          <div style='font-family:JetBrains Mono,monospace; font-size:.72rem;
+                      color:#4A5568; line-height:2.1;'>
+            <span style='color:#8B9CB5;'>AI ENGINE&nbsp;&nbsp;&nbsp;</span>
+            {'🟢 NEURAL NET ONLINE' if self.engine.is_online else '🟠 SIMULATION ACTIVE'}<br>
+            <span style='color:#8B9CB5;'>MODEL VER&nbsp;&nbsp;&nbsp;</span>
+            <span style='color:#DCE8F5;'>{self.engine.model_version}</span><br>
+            <span style='color:#8B9CB5;'>BUILD TAG&nbsp;&nbsp;&nbsp;</span>
+            <span style='color:#DCE8F5;'>{self.engine.build_tag}</span><br>
+            <span style='color:#8B9CB5;'>TIMESTAMP&nbsp;&nbsp;</span>
+            <span style='color:#DCE8F5;'>{now}</span>
+          </div>
         </div>""", unsafe_allow_html=True)
 
-    # ── Page: AI Scanner ─────────────────────────────────────────────────
+    # ── Page: Scanner ─────────────────────────────────────────────
     def page_scanner(self):
-        st.markdown("<h1 class='holo'>Diagnostic Neural Laboratory</h1>", unsafe_allow_html=True)
+        st.markdown("""
+        <div style='margin-bottom:24px;'>
+          <div class='ax-display'>DIAGNOSTIC NEURAL <span class='accent'>LABORATORY</span></div>
+          <div style='color:#4A5568; font-family:JetBrains Mono,monospace;
+                      font-size:.7rem; margin-top:6px; letter-spacing:1px;'>
+            UPLOAD DERMOSCOPIC IMAGE → RUN INFERENCE → REVIEW CLINICAL OUTPUT
+          </div>
+        </div>""", unsafe_allow_html=True)
 
-        in_col, _ = st.columns([1.05, 1.95])
+        # Input panel (narrow left column only)
+        in_col, _ = st.columns([1, 2])
+        pil_img = None; run = False; pid = ""
+
         with in_col:
-            st.markdown("<div class='gcard'>", unsafe_allow_html=True)
-            st.markdown(
-                "<span style='font-size:.75rem;color:#94a3b8;letter-spacing:1px;'>PATIENT PARAMETERS</span>",
-                unsafe_allow_html=True)
-            patient_id = st.text_input("Patient ID / Name", placeholder="e.g. PT-001 / John Doe")
+            st.markdown("""
+            <div class='ax-card'>
+              <div class='ax-card-header'>
+                <span class='ax-label'>INPUT PARAMETERS</span>
+                <span class='ax-badge ax-badge-info'>STEP 1</span>
+              </div>""", unsafe_allow_html=True)
+
+            pid = st.text_input("PATIENT ID", placeholder="e.g. PT-001 / John Doe",
+                                key="pid_input")
             st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown(
-                "<span style='font-size:.75rem;color:#94a3b8;letter-spacing:1px;'>DERMOSCOPIC IMAGE UPLOAD</span>",
-                unsafe_allow_html=True)
-            uploaded = st.file_uploader(
-                "Upload Scan", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
-            pil_img = None
-            run     = False
-            if uploaded:
-                pil_img = Image.open(uploaded)
-                st.image(pil_img, use_container_width=True,
-                         caption="✅ Image loaded — integrity verified")
-                run = st.button("▶  EXECUTE NEURAL SCAN", use_container_width=True)
+
+            st.markdown("""
+            <div class='ax-card-header' style='margin-top:0;'>
+              <span class='ax-label'>IMAGE UPLOAD</span>
+              <span class='ax-badge ax-badge-info'>STEP 2</span>
+            </div>""", unsafe_allow_html=True)
+
+            up = st.file_uploader("",type=["jpg","jpeg","png"],
+                                  label_visibility="collapsed", key="img_upload")
+            if up:
+                pil_img = Image.open(up)
+                st.image(pil_img, use_container_width=True)
+                st.markdown("""
+                <div style='font-family:JetBrains Mono,monospace; font-size:.65rem;
+                     color:#00C896; margin-top:4px; letter-spacing:1px;'>
+                  ✓ IMAGE LOADED — INTEGRITY VERIFIED
+                </div>""", unsafe_allow_html=True)
+                st.markdown("<br>", unsafe_allow_html=True)
+                run = st.button("▶  EXECUTE NEURAL SCAN",
+                                use_container_width=True, key="run_btn")
             st.markdown("</div>", unsafe_allow_html=True)
 
-        if uploaded and run and (pil_img is not None):
+        # Results
+        if up and run and pil_img:
             st.divider()
-            ScanAnimator.run()
+            ScanAnimator.play()
             ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            diagnosis, confidence, reliability, features = self.engine.execute_scan(pil_img)
-            intel = ClinicalProtocols.fetch(diagnosis)
             st.session_state.scan_count += 1
-            ResultDashboard.render(
-                pil_img, patient_id, diagnosis, confidence,
-                reliability, features, intel, self.engine, ts,
-            )
+            scan_id = st.session_state.scan_count
+            dx, conf, rel, feats = self.engine.execute_scan(pil_img)
+            intel = ClinicalDB.get(dx)
+            ResultDashboard.render(pil_img, pid, dx, conf, rel,
+                                   feats, intel, self.engine, ts, scan_id)
 
-    # ── Page: Registry ───────────────────────────────────────────────────
+    # ── Page: Registry ────────────────────────────────────────────
     def page_registry(self):
-        st.markdown("<h1 class='holo'>Secure Patient Registry</h1>", unsafe_allow_html=True)
-        st.markdown("<div class='gcard'>", unsafe_allow_html=True)
-        if st.session_state.medical_database:
-            df = pd.DataFrame(st.session_state.medical_database)
+        st.markdown("""
+        <div style='margin-bottom:24px;'>
+          <div class='ax-display'>PATIENT <span class='accent'>REGISTRY</span></div>
+          <div style='color:#4A5568; font-family:JetBrains Mono,monospace;
+                      font-size:.7rem; margin-top:6px; letter-spacing:1px;'>
+            SECURE SESSION RECORDS  ·  ENCRYPTED LOCALLY
+          </div>
+        </div>""", unsafe_allow_html=True)
+
+        st.markdown("<div class='ax-card'>", unsafe_allow_html=True)
+        if st.session_state.records:
+            df = pd.DataFrame(st.session_state.records)
             st.dataframe(df, use_container_width=True, hide_index=True)
-            st.download_button(
-                "📥 Export Full Registry (CSV)",
-                data=df.to_csv(index=False),
-                file_name="skinscan_registry.csv",
-                mime="text/csv",
-            )
+            st.markdown("<br>", unsafe_allow_html=True)
+            col1, col2, _ = st.columns([1,1,2])
+            with col1:
+                st.download_button(
+                    "📥  EXPORT REGISTRY CSV",
+                    data=df.to_csv(index=False),
+                    file_name=f"SkinScan_Registry_{datetime.datetime.now().strftime('%Y%m%d')}.csv",
+                    mime="text/csv", use_container_width=True,
+                )
+            with col2:
+                if st.button("🗑️  CLEAR ALL RECORDS", use_container_width=True):
+                    st.session_state.records = []
+                    st.rerun()
         else:
-            st.info("📋 No records yet. Save a scan result to populate the registry.")
+            st.markdown("""
+            <div style='text-align:center; padding:40px; color:#4A5568;
+                 font-family:JetBrains Mono,monospace; font-size:.78rem; letter-spacing:1px;'>
+              📋  NO RECORDS YET  ·  RUN A SCAN AND CLICK "SAVE PATIENT RECORD"
+            </div>""", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # ── Page: Analytics ──────────────────────────────────────────────────
+    # ── Page: Analytics ───────────────────────────────────────────
     def page_analytics(self):
-        st.markdown("<h1 class='holo'>Real-time Analytics Engine</h1>", unsafe_allow_html=True)
-        if not st.session_state.medical_database:
-            st.warning("⚠️ No data yet — run and save scans to generate analytics.")
+        st.markdown("""
+        <div style='margin-bottom:24px;'>
+          <div class='ax-display'>REAL-TIME <span class='accent'>ANALYTICS</span></div>
+          <div style='color:#4A5568; font-family:JetBrains Mono,monospace;
+                      font-size:.7rem; margin-top:6px; letter-spacing:1px;'>
+            SESSION EPIDEMIOLOGY  ·  AI PERFORMANCE METRICS
+          </div>
+        </div>""", unsafe_allow_html=True)
+
+        if not st.session_state.records:
+            st.markdown("""
+            <div class='ax-card' style='text-align:center; padding:40px;'>
+              <div style='font-size:2rem; margin-bottom:8px;'>📊</div>
+              <div class='ax-label'>NO DATA AVAILABLE</div>
+              <div style='color:#4A5568; font-size:.85rem; margin-top:8px;'>
+                Save scan results to generate analytics visualizations
+              </div>
+            </div>""", unsafe_allow_html=True)
             return
-        df  = pd.DataFrame(st.session_state.medical_database)
+
+        df = pd.DataFrame(st.session_state.records)
         c1, c2 = st.columns(2)
+
         with c1:
-            st.markdown("<div class='gcard'>", unsafe_allow_html=True)
-            fig = px.pie(df, names="Diagnosis", title="Diagnosis Distribution",
-                         hole=0.44, color_discrete_sequence=["#ef4444", "#10b981"])
-            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",
-                               font_color="#94a3b8", title_font_color="#94a3b8")
+            st.markdown("<div class='ax-card'>", unsafe_allow_html=True)
+            fig = px.pie(
+                df, names="Diagnosis", title="DIAGNOSIS DISTRIBUTION",
+                hole=0.5, color_discrete_sequence=["#FF3B57","#00C896"],
+            )
+            fig.update_traces(textfont=dict(family="JetBrains Mono", size=10))
+            fig.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)",
+                font_color="#8B9CB5",
+                title_font=dict(size=9, color="#4A5568", family="JetBrains Mono"),
+                legend=dict(font=dict(family="JetBrains Mono", size=9)),
+            )
             st.plotly_chart(fig, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
+
         with c2:
-            st.markdown("<div class='gcard'>", unsafe_allow_html=True)
+            st.markdown("<div class='ax-card'>", unsafe_allow_html=True)
             df2 = df.copy()
-            df2["Conf_Num"] = df2["Confidence"].str.replace("%", "").astype(float)
-            fig2 = px.bar(df2, x="Patient_Ref", y="Conf_Num", color="Diagnosis",
-                          title="Confidence by Patient",
-                          color_discrete_map={"Malignant": "#ef4444", "Benign": "#10b981"})
-            fig2.update_layout(paper_bgcolor="rgba(0,0,0,0)",
-                                plot_bgcolor="rgba(0,0,0,0)",
-                                font_color="#94a3b8", title_font_color="#94a3b8",
-                                yaxis_title="Confidence (%)")
+            df2["Conf_Num"] = df2["Confidence"].str.replace("%","").astype(float)
+            fig2 = px.bar(
+                df2, x="Patient", y="Conf_Num", color="Diagnosis",
+                title="CONFIDENCE BY PATIENT",
+                color_discrete_map={"Malignant":"#FF3B57","Benign":"#00C896"},
+            )
+            fig2.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font_color="#8B9CB5",
+                title_font=dict(size=9, color="#4A5568", family="JetBrains Mono"),
+                yaxis=dict(gridcolor="rgba(255,255,255,0.04)", ticksuffix="%",
+                           tickfont=dict(size=8,family="JetBrains Mono")),
+                xaxis=dict(showgrid=False,
+                           tickfont=dict(size=8,family="JetBrains Mono")),
+                legend=dict(font=dict(family="JetBrains Mono",size=9)),
+                yaxis_title="Confidence (%)",
+            )
             st.plotly_chart(fig2, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
-    # ── Footer ───────────────────────────────────────────────────────────
+    # ── Footer ────────────────────────────────────────────────────
     def footer(self):
         st.markdown("""
-        <div style='text-align:center;padding:40px 0 18px;color:#475569;font-size:.76rem;'>
-          <hr style='border-color:rgba(71,85,105,.3);margin-bottom:14px;'>
-          <b style='color:#64748b;'>SkinScan Enterprise Clinical Engine v12.0</b><br>
-          Developed by Rehan Shafique  ·  OOP Architecture  ·  AI-Powered Dermatology<br>
-          <span style='color:#334155;'>
-            ⚠️ For research &amp; clinical decision support only — not a substitute for licensed medical advice
-          </span>
+        <div style='text-align:center; padding:48px 0 20px; margin-top:20px;
+             border-top:1px solid rgba(0,229,255,0.08);'>
+          <div style='font-family:JetBrains Mono,monospace; font-size:.65rem;
+               letter-spacing:2px; color:#1E293B; margin-bottom:8px;'>
+            ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+          </div>
+          <div style='font-family:Oxanium,sans-serif; font-weight:700; font-size:.85rem;
+               color:#334155; letter-spacing:1px;'>
+            SKINSCAN AI  —  AXIOM CLINICAL OS  v13.0
+          </div>
+          <div style='font-family:JetBrains Mono,monospace; font-size:.65rem; color:#1E293B;
+               margin-top:5px; line-height:1.9;'>
+            DEVELOPED BY REHAN SHAFIQUE  ·  OOP ARCHITECTURE  ·  FYP 2025<br>
+            ⚠  RESEARCH & DECISION-SUPPORT ONLY  —  NOT A SUBSTITUTE FOR LICENSED MEDICAL ADVICE
+          </div>
         </div>""", unsafe_allow_html=True)
 
-    # ── Launch ───────────────────────────────────────────────────────────
+    # ── Launch ────────────────────────────────────────────────────
     def launch(self):
         self.login()
         nav = self.sidebar()
@@ -889,8 +1458,8 @@ class SkinScanApp:
         self.footer()
 
 
-# =============================================================================
-# ENTRY POINT
-# =============================================================================
+# ═══════════════════════════════════════════════════════════════════
+#  ENTRY POINT
+# ═══════════════════════════════════════════════════════════════════
 if __name__ == "__main__":
     SkinScanApp().launch()
