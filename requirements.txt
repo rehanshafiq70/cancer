@@ -1,19 +1,5 @@
-# ─────────────────────────────────────────────────────────────────
-# SkinScan AI — Axiom Clinical OS v13.1
-# Python 3.14 Compatible Requirements
-# NOTE: TensorFlow has NO Python 3.14 wheel.
-#       App runs in Simulation Mode automatically without it.
-#       When TF releases a 3.14 wheel, simply uncomment the line below.
-# ─────────────────────────────────────────────────────────────────
-
-streamlit>=1.40.0
-pandas>=2.2.0
-numpy>=2.0.0
-Pillow>=11.0.0
-plotly>=5.24.0
-streamlit-option-menu>=0.3.12
-matplotlib>=3.10.0
-gdown>=5.2.0
-fpdf2>=2.8.0
-
-# tensorflow>=2.17.0   # Uncomment when TF supports Python 3.14
+streamlit>=1.32.0
+pandas>=2.0.0
+numpy>=1.24.0
+Pillow>=10.0.0
+plotly>=5.18.0
