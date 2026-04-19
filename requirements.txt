@@ -1,10 +1,11 @@
-# ─────────────────────────────────────────────────────────────
-# SkinScan AI — requirements.txt
-# Compatible with Streamlit Cloud (Python 3.14+)
-# NOTE: TensorFlow does NOT support Python 3.14 yet.
-#       The app runs in Demo Mode on Streamlit Cloud and uses
-#       TensorFlow only when running locally on Python 3.10/3.11.
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────
+# SkinScan AI v12.0 — requirements.txt
+# Compatible: Python 3.14 + Streamlit Cloud
+# NOTE: TensorFlow has NO wheel for Python 3.14 yet.
+#       App runs in Demo Mode on Cloud.
+#       For real CNN predictions → run locally on Python 3.10/3.11
+#       and add:  tensorflow==2.15.0
+# ─────────────────────────────────────────────────────
 
 streamlit
 numpy
@@ -12,3 +13,4 @@ pandas
 plotly
 Pillow
 requests
+gdown
