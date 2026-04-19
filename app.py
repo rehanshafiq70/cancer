@@ -1,11 +1,15 @@
-
+# =========================================================
 # SkinScan AI – Enterprise Clinical Suite
-# Python 3.14 | Streamlit Cloud | Simulation Mode
+# Python 3.14 | Streamlit Cloud | Simulation Mode | PDF Enabled
+# =========================================================
 
 import streamlit as st
 import time, random, datetime, os
 import gdown
 import plotly.graph_objects as go
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 
 # ===================== CONFIG =====================
 st.set_page_config(
@@ -80,6 +84,44 @@ def prepare_model():
     return True
 
 prepare_model()
+
+# ===================== PDF GENERATOR =====================
+def generate_pdf(diagnosis, risk, confidence):
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    c.setFont("Helvetica-Bold", 20)
+    c.drawString(50, height - 60, "SkinScan AI – Clinical Report")
+
+    c.setFont("Helvetica", 12)
+    c.drawString(50, height - 110, f"Diagnosis: {diagnosis}")
+    c.drawString(50, height - 140, f"Risk Level: {risk}")
+    c.drawString(50, height - 170, f"Confidence Score: {confidence}%")
+
+    c.drawString(50, height - 220, "AI Summary:")
+    c.drawString(70, height - 250,
+        "This report is generated using an AI-based dermatology")
+    c.drawString(70, height - 270,
+        "simulation engine designed for clinical decision support.")
+
+    c.drawString(
+        50,
+        80,
+        f"Generated on: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    )
+
+    c.setFont("Helvetica-Oblique", 9)
+    c.drawString(
+        50,
+        50,
+        "Disclaimer: AI-generated result. Final diagnosis must be confirmed by a licensed physician."
+    )
+
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    return buffer
 
 # ===================== HEADER =====================
 st.markdown("## 🧬 **SkinScan AI – Enterprise Clinical Suite**")
@@ -183,14 +225,27 @@ if uploaded:
     with t3:
         st.markdown("- Review AI result\n- Approve / Override\n- Update EMR")
 
-    # ===================== ACTIONS =====================
+    # ===================== REPORT ACTIONS =====================
     st.markdown("### 📄 Medical Report Center")
     a1, a2, a3, a4 = st.columns(4)
 
-    with a1: st.button("📥 Download AI Report (PDF)")
-    with a2: st.button("💾 Save Patient Record")
-    with a3: st.button("📤 Export Clinical Data")
-    with a4: st.button("✅ Doctor Approval")
+    with a1:
+        pdf_file = generate_pdf(diagnosis, risk, confidence)
+        st.download_button(
+            label="📥 Download AI Report (PDF)",
+            data=pdf_file,
+            file_name="SkinScan_AI_Report.pdf",
+            mime="application/pdf"
+        )
+
+    with a2:
+        st.button("💾 Save Patient Record")
+
+    with a3:
+        st.button("📤 Export Clinical Data")
+
+    with a4:
+        st.button("✅ Doctor Approval")
 
     # ===================== FOOTER =====================
     st.caption(
