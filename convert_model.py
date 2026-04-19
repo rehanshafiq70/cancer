@@ -10,8 +10,8 @@
 import gdown
 import os
 
-FILE_ID = "18VE_D81425cZVYwAXjOn0gWti8_lZSML"
-OUTPUT  = "skin_cancer_model.h5"
+FILE_ID = "1wNRAdJOrmjaewqu9YRpqMqKS0RcihzDA"
+OUTPUT  = "skin_cancer_cnn.h5"
 
 print("📥 Downloading model from Google Drive...")
 gdown.download(f"https://drive.google.com/uc?id={FILE_ID}", OUTPUT, quiet=False)
