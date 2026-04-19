@@ -14,4 +14,4 @@ plotly
 Pillow
 requests
 gdown
-tensorflow==2.15.0
+tensorflow
