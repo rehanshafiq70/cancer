@@ -1,4 +1,7 @@
 streamlit
 numpy
 pillow
-onnxruntime
+onnxruntime==1.16.3
+gdown
+pandas
+plotly
