@@ -1,14 +1,5 @@
-# ══════════════════════════════════════════════════════════
-# SkinScan AI v12.0 — requirements.txt
-# ONNX Runtime — Fully compatible with Python 3.14
-# NO TensorFlow needed at runtime!
-# ══════════════════════════════════════════════════════════
-
 streamlit
 numpy
-pandas
-plotly
-Pillow
-requests
-gdown
+pillow
 onnxruntime
+requests
