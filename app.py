@@ -1,3 +1,44 @@
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from io import BytesIO
+``
+def generate_pdf(diagnosis, risk, confidence):
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    c.setFont("Helvetica-Bold", 20)
+    c.drawString(50, height - 60, "SkinScan AI – Clinical Report")
+
+    c.setFont("Helvetica", 12)
+    c.drawString(50, height - 110, f"Diagnosis: {diagnosis}")
+    c.drawString(50, height - 140, f"Risk Level: {risk}")
+    c.drawString(50, height - 170, f"Confidence Score: {confidence}%")
+
+    c.drawString(50, height - 220, "AI Summary:")
+    c.drawString(70, height - 250,
+        "This report is generated using an AI-based dermatology")
+    c.drawString(70, height - 270,
+        "simulation engine designed for clinical decision support.")
+
+    c.drawString(
+        50,
+        80,
+        f"Generated on: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    )
+
+    c.setFont("Helvetica-Oblique", 9)
+    c.drawString(
+        50,
+        50,
+        "Disclaimer: AI-generated result. Final diagnosis must be confirmed by a licensed physician."
+    )
+
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    return buffer
+
 # SkinScan AI – Enterprise Clinical Suite
 # Python 3.14 | Streamlit Cloud | Simulation Mode
 
