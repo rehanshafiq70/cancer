@@ -2,6 +2,7 @@
 ╔══════════════════════════════════════════════════════════════╗
 ║       SkinScan AI — Clinical Diagnostic System v12.0        ║
 ║       University of Agriculture Faisalabad | FYP            ║
+║       Python 3.11 | TensorFlow 2.15 | Real CNN Predictions  ║
 ╚══════════════════════════════════════════════════════════════╝
 """
 
@@ -11,7 +12,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from PIL import Image, ImageFilter
-import os, time, datetime, io, base64
+import os, time, datetime, io
 
 # ══════════════════════════════════════════════
 # PAGE CONFIG
@@ -31,18 +32,18 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap');
 
 :root {
-    --bg:        #03080f;
-    --bg2:       #061120;
-    --card:      rgba(6,18,38,0.85);
-    --border:    rgba(0,212,255,0.18);
-    --teal:      #00d4ff;
-    --green:     #00ff88;
-    --red:       #ff3355;
-    --yellow:    #ffcc00;
-    --text:      #cce8ff;
-    --muted:     #3a6080;
-    --font1:     'Orbitron', monospace;
-    --font2:     'Inter', sans-serif;
+    --bg:     #03080f;
+    --bg2:    #061120;
+    --card:   rgba(6,18,38,0.85);
+    --border: rgba(0,212,255,0.18);
+    --teal:   #00d4ff;
+    --green:  #00ff88;
+    --red:    #ff3355;
+    --yellow: #ffcc00;
+    --text:   #cce8ff;
+    --muted:  #3a6080;
+    --font1:  'Orbitron', monospace;
+    --font2:  'Inter', sans-serif;
 }
 
 html, body, [data-testid="stAppViewContainer"], .main {
@@ -53,21 +54,20 @@ html, body, [data-testid="stAppViewContainer"], .main {
 
 [data-testid="stAppViewContainer"] {
     background-image:
-        radial-gradient(ellipse 70% 35% at 50% 0%, rgba(0,212,255,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 70% 35% at 50% 0%,  rgba(0,212,255,0.07) 0%, transparent 70%),
         radial-gradient(ellipse 40% 30% at 90% 80%, rgba(0,255,136,0.05) 0%, transparent 60%);
 }
 
 [data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #061120 0%, #03080f 100%) !important;
+    background: linear-gradient(180deg,#061120 0%,#03080f 100%) !important;
     border-right: 1px solid rgba(0,212,255,0.1) !important;
 }
 
-#MainMenu, footer, header, [data-testid="stDecoration"] { visibility: hidden; }
-.stDeployButton { display: none; }
+#MainMenu, footer, header, [data-testid="stDecoration"] { visibility:hidden; }
+.stDeployButton { display:none; }
 
-/* Buttons */
 .stButton > button {
-    background: linear-gradient(135deg, #00d4ff22, #00d4ff44) !important;
+    background: linear-gradient(135deg,#00d4ff22,#00d4ff44) !important;
     color: #00d4ff !important;
     border: 1px solid rgba(0,212,255,0.5) !important;
     border-radius: 8px !important;
@@ -79,21 +79,18 @@ html, body, [data-testid="stAppViewContainer"], .main {
     transition: all 0.2s !important;
 }
 .stButton > button:hover {
-    background: linear-gradient(135deg, #00d4ff44, #00d4ff66) !important;
+    background: linear-gradient(135deg,#00d4ff44,#00d4ff66) !important;
     box-shadow: 0 0 20px rgba(0,212,255,0.3) !important;
     transform: translateY(-1px) !important;
 }
 
-/* Primary scan button — special */
 div[data-testid="stButton"] button[kind="primary"] {
-    background: linear-gradient(135deg, #00d4ff, #0088ff) !important;
-    color: #000 !important;
-    border: none !important;
+    background: linear-gradient(135deg,#00d4ff,#0088ff) !important;
+    color: #000 !important; border: none !important;
     font-size: 0.78rem !important;
     box-shadow: 0 4px 20px rgba(0,212,255,0.4) !important;
 }
 
-/* Inputs */
 .stTextInput input, .stNumberInput input, .stSelectbox > div > div {
     background: rgba(6,18,38,0.9) !important;
     border: 1px solid var(--border) !important;
@@ -101,7 +98,6 @@ div[data-testid="stButton"] button[kind="primary"] {
     color: var(--text) !important;
 }
 
-/* Metrics */
 [data-testid="metric-container"] {
     background: var(--card) !important;
     border: 1px solid var(--border) !important;
@@ -121,7 +117,6 @@ div[data-testid="stButton"] button[kind="primary"] {
     letter-spacing: 0.1em;
 }
 
-/* Tabs */
 .stTabs [data-baseweb="tab-list"] {
     background: transparent !important;
     border-bottom: 1px solid rgba(0,212,255,0.12) !important;
@@ -138,25 +133,39 @@ div[data-testid="stButton"] button[kind="primary"] {
     background: rgba(0,212,255,0.05) !important;
 }
 
-/* Progress */
 .stProgress > div > div > div {
-    background: linear-gradient(90deg, #00d4ff, #00ff88) !important;
+    background: linear-gradient(90deg,#00d4ff,#00ff88) !important;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--teal); border-radius: 4px; }
-
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--teal); border-radius:4px; }
 hr { border-color: rgba(0,212,255,0.1) !important; }
 
-/* Expander */
 .streamlit-expanderHeader {
     background: var(--card) !important;
     border: 1px solid var(--border) !important;
     border-radius: 8px !important;
     color: var(--text) !important;
     font-family: var(--font2) !important;
+}
+
+.stDownloadButton > button {
+    background: linear-gradient(135deg,#00d4ff22,#00d4ff44) !important;
+    color: #00d4ff !important;
+    border: 1px solid rgba(0,212,255,0.5) !important;
+    border-radius: 8px !important;
+    font-family: var(--font1) !important;
+    font-size: 0.68rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.08em !important;
+    padding: 0.5rem 1.2rem !important;
+    width: 100% !important;
+    transition: all 0.2s !important;
+}
+.stDownloadButton > button:hover {
+    background: linear-gradient(135deg,#00d4ff44,#00d4ff66) !important;
+    box-shadow: 0 0 18px rgba(0,212,255,0.28) !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -169,11 +178,11 @@ def init_state():
         "page":          "Home",
         "model":         None,
         "model_loaded":  False,
+        "model_status":  "not_loaded",
         "scan_history":  [],
         "total_scans":   0,
         "malignant_cnt": 0,
         "benign_cnt":    0,
-        "last_result":   None,
     }
     for k, v in D.items():
         if k not in st.session_state:
@@ -182,73 +191,94 @@ def init_state():
 init_state()
 
 # ══════════════════════════════════════════════
-# MODEL — gdown DOWNLOAD + LOAD
+# MODEL — GOOGLE DRIVE DOWNLOAD + KERAS LOAD
 # ══════════════════════════════════════════════
-GDRIVE_ID  = "18VE_D81425cZVYwAXjOn0gWti8_lZSML"
+GDRIVE_ID  = "18A3F0XdVmuqnoWTD_UvsAKw2iIvLghXf"   # ← your trained model
 MODEL_FILE = "skin_cancer_model.h5"
 
 @st.cache_resource(show_spinner=False)
 def load_cnn_model():
-    """Download from GDrive with gdown if needed, then load with Keras."""
-    # ── Try TensorFlow import first ──
+    """
+    1. Try to import TensorFlow (works on Python 3.11, not 3.14).
+    2. Download .h5 from Google Drive via gdown (with requests fallback).
+    3. Load and return the Keras model.
+    Returns: (model | None, status_str)
+    """
+    # ── Step 1: TensorFlow check ─────────────────────────────────
     try:
         import tensorflow as tf
-    except Exception:
-        return None, "demo"   # Python 3.14 / no TF → demo
+    except ImportError:
+        return None, "no_tf"          # Python 3.14 path — Demo Mode
 
-    # ── Download if not cached ──
+    # ── Step 2: Download if not cached ───────────────────────────
     if not os.path.exists(MODEL_FILE):
+        downloaded = False
+
+        # Try gdown first (fastest)
         try:
             import gdown
             url = f"https://drive.google.com/uc?id={GDRIVE_ID}"
-            gdown.download(url, MODEL_FILE, quiet=False)
-        except Exception as e:
-            # fallback: requests streaming
+            gdown.download(url, MODEL_FILE, quiet=False, fuzzy=True)
+            downloaded = os.path.exists(MODEL_FILE)
+        except Exception:
+            downloaded = False
+
+        # Fallback: raw requests streaming
+        if not downloaded:
             try:
                 import requests
-                sess = requests.Session()
-                URL  = "https://docs.google.com/uc?export=download"
-                r    = sess.get(URL, params={"id": GDRIVE_ID}, stream=True)
-                tok  = next((v for k, v in r.cookies.items()
-                             if k.startswith("download_warning")), None)
-                if tok:
-                    r = sess.get(URL, params={"id": GDRIVE_ID, "confirm": tok}, stream=True)
-                with open(MODEL_FILE, "wb") as f:
-                    for chunk in r.iter_content(32768):
-                        if chunk: f.write(chunk)
-            except Exception as e2:
-                return None, f"download_error: {e2}"
+                session = requests.Session()
+                URL     = "https://docs.google.com/uc?export=download"
+                resp    = session.get(URL, params={"id": GDRIVE_ID}, stream=True)
+                # Handle virus-scan confirmation token
+                token = None
+                for k, v in resp.cookies.items():
+                    if k.startswith("download_warning"):
+                        token = v
+                        break
+                if token:
+                    resp = session.get(
+                        URL,
+                        params={"id": GDRIVE_ID, "confirm": token},
+                        stream=True,
+                    )
+                with open(MODEL_FILE, "wb") as fh:
+                    for chunk in resp.iter_content(chunk_size=32768):
+                        if chunk:
+                            fh.write(chunk)
+                downloaded = os.path.exists(MODEL_FILE)
+            except Exception as e:
+                return None, f"download_error: {e}"
 
-    # ── Load ──
+        if not downloaded:
+            return None, "download_failed"
+
+    # ── Step 3: Load model ───────────────────────────────────────
     try:
         model = tf.keras.models.load_model(MODEL_FILE)
         return model, "loaded"
     except Exception as e:
+        # Corrupted / incompatible file — delete and re-download next run
+        if os.path.exists(MODEL_FILE):
+            os.remove(MODEL_FILE)
         return None, f"load_error: {e}"
 
 # ══════════════════════════════════════════════
 # IMAGE VALIDATION
 # ══════════════════════════════════════════════
 def validate_image(img: Image.Image):
-    """Returns (ok: bool, msg: str)"""
-    # Size
     if img.width < 64 or img.height < 64:
         return False, "Image resolution too low (min 64×64 px)."
-    # Mode
-    img_rgb = img.convert("RGB")
-    arr = np.array(img_rgb, dtype=np.float32)
-    # Brightness
+    arr = np.array(img.convert("RGB"), dtype=np.float32)
     mean_b = arr.mean()
     if mean_b < 25:
         return False, "Image is too dark. Upload a properly lit dermoscopic image."
     if mean_b > 230:
         return False, "Image is overexposed. Upload a properly lit dermoscopic image."
-    # Blur (edge variance)
-    gray = img.convert("L")
-    edges = gray.filter(ImageFilter.FIND_EDGES)
+    edges    = img.convert("L").filter(ImageFilter.FIND_EDGES)
     variance = np.array(edges, dtype=np.float32).var()
     if variance < 40:
-        return False, "Image appears blurry or out of focus. Upload a sharp dermoscopic image."
+        return False, "Image appears blurry. Upload a sharp dermoscopic image."
     return True, "ok"
 
 # ══════════════════════════════════════════════
@@ -256,23 +286,26 @@ def validate_image(img: Image.Image):
 # ══════════════════════════════════════════════
 def preprocess(img: Image.Image) -> np.ndarray:
     img = img.convert("RGB").resize((224, 224), Image.LANCZOS)
-    arr = np.array(img, dtype=np.float32) / 255.0
-    return np.expand_dims(arr, 0)
+    return np.expand_dims(np.array(img, dtype=np.float32) / 255.0, 0)
 
 def predict(model, img: Image.Image, status: str) -> dict:
     tensor = preprocess(img)
+
     if model is not None and status == "loaded":
+        # ── REAL CNN PREDICTION ──────────────────────────────────
         raw = model.predict(tensor, verbose=0)
         if raw.shape[-1] == 1:
+            # Binary sigmoid output  →  single probability of malignant
             mal = float(raw[0][0])
         else:
+            # Softmax output  →  [benign_prob, malignant_prob]
             mal = float(raw[0][1])
     else:
-        # Demo — realistic simulation
+        # ── DEMO MODE (TF unavailable) ───────────────────────────
         np.random.seed(int(time.time()) % 9999)
         mal = float(np.random.beta(2, 4))
 
-    ben = 1.0 - mal
+    ben   = 1.0 - mal
     label = "Malignant" if mal >= 0.5 else "Benign"
     conf  = round(max(mal, ben) * 100, 1)
 
@@ -282,12 +315,12 @@ def predict(model, img: Image.Image, status: str) -> dict:
         risk = "Low" if conf >= 70 else "Medium"
 
     return {
-        "label":    label,
-        "conf":     conf,
-        "mal_pct":  round(mal * 100, 1),
-        "ben_pct":  round(ben * 100, 1),
-        "risk":     risk,
-        "demo":     status != "loaded",
+        "label":   label,
+        "conf":    conf,
+        "mal_pct": round(mal * 100, 1),
+        "ben_pct": round(ben * 100, 1),
+        "risk":    risk,
+        "demo":    status != "loaded",
     }
 
 # ══════════════════════════════════════════════
@@ -297,11 +330,13 @@ def make_report(pat: dict, res: dict) -> str:
     ts  = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     rid = f"RPT-{int(time.time())}"
     if res["label"] == "Malignant":
-        tx = "• Immediate oncology referral\n• Surgical biopsy recommended\n• Avoid UV exposure\n• Follow up within 7 days"
+        tx  = "• Immediate oncology referral\n• Surgical biopsy recommended\n• Avoid UV exposure\n• Follow up within 7 days"
         rec = "URGENT: Consult a dermatologist / oncologist immediately."
     else:
         tx  = "• Topical moisturiser if symptomatic\n• SPF 50+ daily sunscreen\n• Annual skin check\n• Self-examination monthly"
         rec = "Routine monitoring advised. Recheck in 6–12 months."
+
+    mode_note = "REAL CNN PREDICTION" if not res["demo"] else "DEMO MODE (TF unavailable)"
 
     return f"""
 ╔══════════════════════════════════════════════════════════╗
@@ -310,14 +345,15 @@ def make_report(pat: dict, res: dict) -> str:
 Report ID      : {rid}
 Generated      : {ts}
 System Version : SkinScan AI v12.0
+Prediction Mode: {mode_note}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  PATIENT INFORMATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Name           : {pat.get('name','N/A')}
-Age            : {pat.get('age','N/A')}
-Gender         : {pat.get('gender','N/A')}
-Patient ID     : {pat.get('pid','N/A')}
+Name       : {pat.get('name','N/A')}
+Age        : {pat.get('age','N/A')}
+Gender     : {pat.get('gender','N/A')}
+Patient ID : {pat.get('pid','N/A')}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  AI DIAGNOSIS
@@ -347,7 +383,7 @@ medical diagnosis. Always confirm with a licensed physician.
 
 ──────────────────────────────────────────────────────────
 University of Agriculture Faisalabad | Rehan Shafique
-rehanshafiq6540@gmail.com | SkinScan AI v12.0
+SkinScan AI v12.0
 ══════════════════════════════════════════════════════════
 """.strip()
 
@@ -356,14 +392,12 @@ rehanshafiq6540@gmail.com | SkinScan AI v12.0
 # ══════════════════════════════════════════════
 def render_sidebar():
     with st.sidebar:
-        # Logo
         st.markdown("""
         <div style="padding:24px 16px 16px;text-align:center;">
           <div style="display:inline-flex;align-items:center;justify-content:center;
                       width:58px;height:58px;border-radius:14px;
                       background:linear-gradient(135deg,#00d4ff33,#00ff8833);
-                      border:1px solid rgba(0,212,255,0.4);
-                      margin-bottom:10px;">
+                      border:1px solid rgba(0,212,255,0.4);margin-bottom:10px;">
             <span style="font-size:28px;">🧬</span>
           </div>
           <div style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;
@@ -373,15 +407,9 @@ def render_sidebar():
         </div>
         """, unsafe_allow_html=True)
 
-        # Model status
-        if st.session_state.model_loaded:
-            model, status = st.session_state.model, "loaded"
-        else:
-            model, status = None, "not_loaded"
-
-        is_live = st.session_state.model_loaded and st.session_state.model is not None
+        is_live = (st.session_state.model_status == "loaded")
         dot_col = "#00ff88" if is_live else "#ffcc00"
-        dot_lbl = "Model Online" if is_live else "Demo Mode"
+        dot_lbl = "CNN Model Online" if is_live else "Demo Mode"
         st.markdown(f"""
         <div style="margin:0 12px 14px;padding:7px 12px;border-radius:8px;
                     background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.15);
@@ -420,15 +448,13 @@ def render_sidebar():
 # PAGE: HOME
 # ══════════════════════════════════════════════
 def page_home():
-    # ── HERO ──
     st.markdown("""
     <div style="text-align:center;padding:3rem 1rem 2rem;">
       <div style="display:inline-flex;align-items:center;justify-content:center;
                   width:90px;height:90px;border-radius:22px;
                   background:linear-gradient(135deg,#00d4ff22,#00ff8822);
                   border:1.5px solid rgba(0,212,255,0.4);
-                  box-shadow:0 0 40px rgba(0,212,255,0.15);
-                  margin-bottom:1.2rem;">
+                  box-shadow:0 0 40px rgba(0,212,255,0.15);margin-bottom:1.2rem;">
         <span style="font-size:44px;">🧬</span>
       </div>
       <h1 style="font-family:'Orbitron',monospace;font-size:2.6rem;font-weight:900;
@@ -442,13 +468,12 @@ def page_home():
       <div style="font-size:1.1rem;color:#8ab8d0;max-width:600px;
                   margin:0 auto 2rem;line-height:1.7;">
         Hospital-grade AI skin cancer detection powered by Deep Learning.<br>
-        Instant <b style="color:#00d4ff;">Benign</b> vs 
+        Instant <b style="color:#00d4ff;">Benign</b> vs
         <b style="color:#ff3355;">Malignant</b> classification with clinical reports.
       </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # ── START BUTTON ──
     col1, col2, col3 = st.columns([2, 1, 2])
     with col2:
         if st.button("⚡  START DIAGNOSIS", use_container_width=True, type="primary"):
@@ -457,7 +482,6 @@ def page_home():
 
     st.markdown("<br><br>", unsafe_allow_html=True)
 
-    # ── STEP BY STEP GUIDE ──
     st.markdown("""
     <div style="text-align:center;margin-bottom:1.5rem;">
       <span style="font-family:'Orbitron',monospace;font-size:0.85rem;
@@ -467,32 +491,28 @@ def page_home():
     </div>""", unsafe_allow_html=True)
 
     steps_data = [
-        ("01", "🖼️", "Upload Image",    "Drag & drop a dermoscopic skin lesion image (JPG/PNG)"),
-        ("02", "⚡", "Run AI Scan",     "Click Execute Deep Scan to trigger the CNN model"),
-        ("03", "🧠", "AI Processing",  "Model analyses the lesion in real-time"),
-        ("04", "📊", "View Result",     "See diagnosis, confidence %, and risk level"),
-        ("05", "📄", "Export Report",   "Download medical report or export patient CSV"),
+        ("01", "🖼️", "Upload Image",   "Drag & drop a dermoscopic skin lesion image (JPG/PNG)"),
+        ("02", "⚡", "Run AI Scan",    "Click Execute Deep Scan to trigger the CNN model"),
+        ("03", "🧠", "AI Processing",  "Real MobileNetV2 model analyses the lesion"),
+        ("04", "📊", "View Result",    "See diagnosis, confidence %, and risk level"),
+        ("05", "📄", "Export Report",  "Download medical report or export patient CSV"),
     ]
-
     cols = st.columns(5)
     for i, (num, icon, title, desc) in enumerate(steps_data):
         with cols[i]:
             st.markdown(f"""
             <div style="background:rgba(6,18,38,0.8);border:1px solid rgba(0,212,255,0.15);
-                        border-radius:14px;padding:1.2rem 0.8rem;text-align:center;
-                        height:160px;">
+                        border-radius:14px;padding:1.2rem 0.8rem;text-align:center;height:165px;">
               <div style="font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:900;
                           color:rgba(0,212,255,0.2);margin-bottom:6px;">{num}</div>
               <div style="font-size:1.5rem;margin-bottom:8px;">{icon}</div>
-              <div style="font-family:'Orbitron',monospace;font-size:0.6rem;
-                          color:#00d4ff;font-weight:700;letter-spacing:0.05em;
-                          margin-bottom:6px;">{title}</div>
+              <div style="font-family:'Orbitron',monospace;font-size:0.6rem;color:#00d4ff;
+                          font-weight:700;letter-spacing:0.05em;margin-bottom:6px;">{title}</div>
               <div style="font-size:0.72rem;color:#3a6080;line-height:1.5;">{desc}</div>
             </div>""", unsafe_allow_html=True)
 
     st.markdown("<br><br>", unsafe_allow_html=True)
 
-    # ── FEATURES SECTION ──
     st.markdown("""
     <div style="text-align:center;margin-bottom:1.5rem;">
       <span style="font-family:'Orbitron',monospace;font-size:0.85rem;
@@ -502,12 +522,12 @@ def page_home():
     </div>""", unsafe_allow_html=True)
 
     feats = [
-        ("🧠", "CNN Detection",       "Deep learning model trained on melanoma dermoscopy dataset"),
-        ("⚡", "Real-time Prediction", "Instant results with confidence scoring and risk levels"),
-        ("📄", "Medical Reports",      "Auto-generated clinical reports ready for download"),
-        ("📊", "Analytics Dashboard",  "Full scan history, charts, and statistical insights"),
-        ("🗂️", "Patient Registry",     "Structured patient data management and CSV export"),
-        ("✅", "Image Validation",      "Auto-rejects blurry, dark, or low-quality images"),
+        ("🧠", "Real CNN Predictions",  "MobileNetV2 model auto-downloaded from Google Drive"),
+        ("⚡", "Real-time Analysis",    "Instant results with confidence scoring and risk levels"),
+        ("📄", "Medical Reports",       "Auto-generated clinical reports ready for download"),
+        ("📊", "Analytics Dashboard",   "Full scan history, charts, and statistical insights"),
+        ("🗂️", "Patient Registry",      "Structured patient data management and CSV export"),
+        ("✅", "Image Validation",       "Auto-rejects blurry, dark, or low-quality images"),
     ]
     fc1, fc2, fc3 = st.columns(3)
     for i, (icon, title, desc) in enumerate(feats):
@@ -519,13 +539,12 @@ def page_home():
                         display:flex;gap:12px;align-items:flex-start;">
               <span style="font-size:1.5rem;flex-shrink:0;">{icon}</span>
               <div>
-                <div style="font-family:'Orbitron',monospace;font-size:0.65rem;
-                            color:#00d4ff;font-weight:700;margin-bottom:4px;">{title}</div>
+                <div style="font-family:'Orbitron',monospace;font-size:0.65rem;color:#00d4ff;
+                            font-weight:700;margin-bottom:4px;">{title}</div>
                 <div style="font-size:0.75rem;color:#3a6080;line-height:1.5;">{desc}</div>
               </div>
             </div>""", unsafe_allow_html=True)
 
-    # ── DATASET INFO ──
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("""
     <div style="text-align:center;margin-bottom:1.2rem;">
@@ -537,10 +556,10 @@ def page_home():
 
     d1, d2, d3, d4 = st.columns(4)
     for col, val, lbl in [
-        (d1, "10,015",  "Total Images"),
-        (d2, "6,705",   "Benign Cases"),
-        (d3, "3,310",   "Malignant Cases"),
-        (d4, "Kaggle",  "Source"),
+        (d1, "10,015", "Total Images"),
+        (d2, "6,705",  "Benign Cases"),
+        (d3, "3,310",  "Malignant Cases"),
+        (d4, "Kaggle", "Source"),
     ]:
         with col:
             st.markdown(f"""
@@ -562,16 +581,23 @@ def page_scan():
         Upload a dermoscopic image for CNN-powered skin cancer detection
     </p>""", unsafe_allow_html=True)
 
-    # ── Load model once ──
+    # ── Load model once per session ───────────────────────────────
     if not st.session_state.model_loaded:
-        with st.spinner("🔄 Initialising AI model…"):
+        with st.spinner("🔄 Downloading & loading CNN model from Google Drive…"):
             m, status = load_cnn_model()
-            st.session_state.model        = m
-            st.session_state.model_status = status
-            st.session_state.model_loaded = True
+        st.session_state.model        = m
+        st.session_state.model_status = status
+        st.session_state.model_loaded = True
+
+        if status == "loaded":
+            st.success("✅ CNN model loaded successfully — Real predictions enabled!")
+        elif status == "no_tf":
+            st.warning("⚠️ TensorFlow not available — running in Demo Mode.")
+        else:
+            st.error(f"⚠️ Model issue: {status} — running in Demo Mode.")
 
     model  = st.session_state.model
-    status = getattr(st.session_state, "model_status", "demo")
+    status = st.session_state.model_status
 
     # Status badge
     if status == "loaded":
@@ -582,7 +608,7 @@ def page_scan():
           <span style="width:7px;height:7px;border-radius:50%;background:#00ff88;
                        box-shadow:0 0 8px #00ff88;display:inline-block;"></span>
           <span style="font-size:0.72rem;color:#00ff88;
-                       font-family:'Orbitron',monospace;">CNN Model Online</span>
+                       font-family:'Orbitron',monospace;">CNN Model Online — Real Predictions Active</span>
         </div>""", unsafe_allow_html=True)
     else:
         st.markdown("""
@@ -592,24 +618,23 @@ def page_scan():
           <span style="width:7px;height:7px;border-radius:50%;background:#ffcc00;
                        box-shadow:0 0 8px #ffcc00;display:inline-block;"></span>
           <span style="font-size:0.72rem;color:#ffcc00;
-                       font-family:'Orbitron',monospace;">Demo Mode
-                       (TF not available on Python 3.14)</span>
+                       font-family:'Orbitron',monospace;">Demo Mode Active</span>
         </div>""", unsafe_allow_html=True)
 
-    # ── Patient form ──
+    # ── Patient form ──────────────────────────────────────────────
     with st.expander("👤 Patient Information", expanded=True):
         c1, c2, c3, c4 = st.columns(4)
-        p_name   = c1.text_input("Full Name",   placeholder="e.g. Ahmed Ali")
+        p_name   = c1.text_input("Full Name",  placeholder="e.g. Ahmed Ali")
         p_age    = c2.number_input("Age", 1, 120, 30)
         p_gender = c3.selectbox("Gender", ["Male", "Female", "Other"])
-        p_id     = c4.text_input("Patient ID",  placeholder="PT-001")
+        p_id     = c4.text_input("Patient ID", placeholder="PT-001")
 
-    # ── Upload ──
+    # ── Upload ────────────────────────────────────────────────────
     st.markdown("#### 🖼️ Upload Dermoscopic Image")
     uploaded = st.file_uploader(
         "Supported: JPG, JPEG, PNG, BMP",
         type=["jpg", "jpeg", "png", "bmp"],
-        label_visibility="collapsed"
+        label_visibility="collapsed",
     )
 
     if not uploaded:
@@ -618,12 +643,11 @@ def page_scan():
                     padding:3rem;text-align:center;color:#3a6080;">
           <div style="font-size:3rem;margin-bottom:0.5rem;">🖼️</div>
           <div style="font-size:0.85rem;">Drag & drop a dermoscopic skin image here</div>
-          <div style="font-size:0.72rem;margin-top:6px;">JPG · PNG · BMP · min 64×64px</div>
+          <div style="font-size:0.72rem;margin-top:6px;">JPG · PNG · BMP · min 64×64 px</div>
         </div>""", unsafe_allow_html=True)
         return
 
     img = Image.open(uploaded)
-
     col_img, col_ctrl = st.columns([1, 1])
 
     with col_img:
@@ -634,17 +658,13 @@ def page_scan():
         </div>""", unsafe_allow_html=True)
 
     with col_ctrl:
-        # Validate
         ok, msg = validate_image(img)
         if not ok:
             st.markdown(f"""
             <div style="background:rgba(255,51,85,0.08);border:1px solid rgba(255,51,85,0.3);
                         border-radius:10px;padding:1rem 1.2rem;color:#ff3355;">
               <b>❌ Invalid Image</b><br>
-              <span style="font-size:0.82rem;">{msg}</span><br><br>
-              <span style="font-size:0.78rem;color:#3a6080;">
-                Please upload a clear dermoscopic skin image.
-              </span>
+              <span style="font-size:0.82rem;">{msg}</span>
             </div>""", unsafe_allow_html=True)
             return
 
@@ -655,28 +675,16 @@ def page_scan():
           ✅ Image quality validated — ready for scan
         </div>""", unsafe_allow_html=True)
 
-        if p_age < 1:
-            st.warning("Please fill in patient information above.")
-
-        conf_warn = status != "loaded"
-        if conf_warn:
-            st.markdown("""
-            <div style="background:rgba(255,204,0,0.06);border:1px solid rgba(255,204,0,0.2);
-                        border-radius:8px;padding:0.6rem 1rem;font-size:0.75rem;
-                        color:#ffcc00;margin-bottom:1rem;">
-              ⚠️ Running in Demo Mode — install TensorFlow locally for real predictions.
-            </div>""", unsafe_allow_html=True)
-
         run = st.button("⚡  EXECUTE DEEP SCAN", use_container_width=True, type="primary")
 
+    # ── Run inference ─────────────────────────────────────────────
     if run:
-        # Animated progress
         prog = st.progress(0, text="Initialising neural network…")
         phases = [
-            (15, "Preprocessing image…"),
-            (35, "Extracting feature maps…"),
-            (60, "Running convolutional layers…"),
-            (80, "Computing softmax output…"),
+            (15,  "Preprocessing image…"),
+            (35,  "Extracting feature maps…"),
+            (60,  "Running convolutional layers…"),
+            (80,  "Computing softmax output…"),
             (100, "Finalising diagnosis…"),
         ]
         for pct, txt in phases:
@@ -686,34 +694,45 @@ def page_scan():
 
         res = predict(model, img, status)
 
-        # ── LOW CONFIDENCE WARNING ──
+        # Low confidence warning
         if res["conf"] < 60:
             st.markdown(f"""
             <div style="background:rgba(255,204,0,0.07);border:1px solid rgba(255,204,0,0.3);
-                        border-radius:10px;padding:0.8rem 1.2rem;color:#ffcc00;
-                        font-size:0.8rem;margin-bottom:1rem;">
-              ⚠️ <b>Low Reliability Warning</b> — Confidence is {res['conf']}% (&lt;60%).
-              Result may be inconclusive. Please upload a higher-quality image.
+                        border-radius:10px;padding:0.8rem 1.2rem;color:#ffcc00;font-size:0.8rem;
+                        margin-bottom:1rem;">
+              ⚠️ <b>Low Reliability</b> — Confidence is {res['conf']}% (&lt;60%).
+              Upload a higher-quality image for more accurate results.
             </div>""", unsafe_allow_html=True)
 
-        # ── RESULT CARD ──
-        label_color = "#ff3355" if res["label"] == "Malignant" else "#00ff88"
-        risk_color  = {"Critical": "#ff3355", "Medium": "#ffcc00", "Low": "#00ff88"}[res["risk"]]
-        icon_label  = "⚠️" if res["label"] == "Malignant" else "✅"
+        # ── RESULT CARD ───────────────────────────────────────────
+        lc  = "#ff3355" if res["label"] == "Malignant" else "#00ff88"
+        rc  = {"Critical": "#ff3355", "Medium": "#ffcc00", "Low": "#00ff88"}[res["risk"]]
+        ico = "⚠️" if res["label"] == "Malignant" else "✅"
+        mode_badge = (
+            '<span style="font-size:0.62rem;color:#00ff88;font-family:Orbitron,monospace;'
+            'background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);'
+            'border-radius:4px;padding:2px 8px;margin-left:10px;">REAL CNN</span>'
+            if not res["demo"] else
+            '<span style="font-size:0.62rem;color:#ffcc00;font-family:Orbitron,monospace;'
+            'background:rgba(255,204,0,0.1);border:1px solid rgba(255,204,0,0.3);'
+            'border-radius:4px;padding:2px 8px;margin-left:10px;">DEMO</span>'
+        )
 
         st.markdown(f"""
-        <div style="background:rgba(6,18,38,0.9);border:1.5px solid {label_color}44;
+        <div style="background:rgba(6,18,38,0.9);border:1.5px solid {lc}44;
                     border-radius:16px;padding:1.6rem 1.8rem;
-                    box-shadow:0 0 30px {label_color}15;margin-top:0.5rem;">
+                    box-shadow:0 0 30px {lc}15;margin-top:0.5rem;">
 
           <div style="display:flex;align-items:center;gap:14px;margin-bottom:1.2rem;">
             <div style="width:52px;height:52px;border-radius:12px;
-                        background:{label_color}18;border:1px solid {label_color}44;
+                        background:{lc}18;border:1px solid {lc}44;
                         display:flex;align-items:center;justify-content:center;
-                        font-size:1.6rem;">{icon_label}</div>
+                        font-size:1.6rem;">{ico}</div>
             <div>
               <div style="font-family:'Orbitron',monospace;font-size:1.4rem;
-                          font-weight:800;color:{label_color};">{res['label'].upper()}</div>
+                          font-weight:800;color:{lc};display:flex;align-items:center;">
+                {res['label'].upper()}{mode_badge}
+              </div>
               <div style="font-size:0.75rem;color:#3a6080;">AI Classification</div>
             </div>
             <div style="margin-left:auto;text-align:right;">
@@ -726,7 +745,7 @@ def page_scan():
           <div style="height:5px;background:rgba(255,255,255,0.05);
                       border-radius:5px;margin-bottom:1.2rem;">
             <div style="height:100%;width:{res['conf']}%;
-                        background:linear-gradient(90deg,{label_color}66,{label_color});
+                        background:linear-gradient(90deg,{lc}66,{lc});
                         border-radius:5px;"></div>
           </div>
 
@@ -736,7 +755,7 @@ def page_scan():
               <div style="font-size:0.65rem;color:#3a6080;text-transform:uppercase;
                           letter-spacing:0.1em;">Risk Level</div>
               <div style="font-family:'Orbitron',monospace;font-size:0.9rem;
-                          font-weight:700;color:{risk_color};">{res['risk']}</div>
+                          font-weight:700;color:{rc};">{res['risk']}</div>
             </div>
             <div style="flex:1;background:rgba(255,255,255,0.03);border-radius:8px;
                         padding:8px 12px;border:1px solid rgba(255,255,255,0.05);">
@@ -757,7 +776,7 @@ def page_scan():
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # ── ANALYSIS CHARTS ──
+        # ── Charts ────────────────────────────────────────────────
         ch1, ch2 = st.columns(2)
         with ch1:
             fig_bar = go.Figure(go.Bar(
@@ -772,9 +791,9 @@ def page_scan():
                 paper_bgcolor="rgba(0,0,0,0)",
                 plot_bgcolor="rgba(0,0,0,0)",
                 font_color="#cce8ff", font_family="Orbitron",
-                yaxis=dict(range=[0, 110], showgrid=False, color="#3a6080"),
+                yaxis=dict(range=[0, 115], showgrid=False, color="#3a6080"),
                 xaxis=dict(color="#3a6080"),
-                height=280
+                height=280,
             )
             st.plotly_chart(fig_bar, use_container_width=True)
 
@@ -782,10 +801,11 @@ def page_scan():
             fig_gauge = go.Figure(go.Indicator(
                 mode="gauge+number",
                 value=res["conf"],
-                title={"text": "Confidence Gauge", "font": {"color": "#cce8ff", "family": "Orbitron"}},
+                title={"text": "Confidence Gauge",
+                       "font": {"color": "#cce8ff", "family": "Orbitron"}},
                 gauge={
                     "axis": {"range": [0, 100], "tickcolor": "#3a6080"},
-                    "bar":  {"color": label_color},
+                    "bar":  {"color": lc},
                     "bgcolor": "rgba(0,0,0,0)",
                     "steps": [
                         {"range": [0,  50],  "color": "rgba(255,51,85,0.1)"},
@@ -797,17 +817,17 @@ def page_scan():
             ))
             fig_gauge.update_layout(
                 paper_bgcolor="rgba(0,0,0,0)",
-                font_color="#cce8ff", height=280
+                font_color="#cce8ff", height=280,
             )
             st.plotly_chart(fig_gauge, use_container_width=True)
 
-        # ── MEDICAL RECOMMENDATIONS ──
+        # ── Clinical recommendations ──────────────────────────────
         if res["label"] == "Malignant":
-            st.markdown(f"""
+            st.markdown("""
             <div style="background:rgba(255,51,85,0.06);border:1px solid rgba(255,51,85,0.3);
                         border-radius:14px;padding:1.2rem 1.5rem;margin-bottom:1rem;">
-              <div style="font-family:'Orbitron',monospace;font-size:0.75rem;
-                          color:#ff3355;font-weight:700;margin-bottom:0.7rem;">
+              <div style="font-family:'Orbitron',monospace;font-size:0.75rem;color:#ff3355;
+                          font-weight:700;margin-bottom:0.7rem;">
                 🚨 MALIGNANT DETECTED — URGENT ACTION REQUIRED
               </div>
               <div style="font-size:0.82rem;color:#8ab8d0;line-height:2;">
@@ -819,11 +839,11 @@ def page_scan():
               </div>
             </div>""", unsafe_allow_html=True)
         else:
-            st.markdown(f"""
+            st.markdown("""
             <div style="background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.2);
                         border-radius:14px;padding:1.2rem 1.5rem;margin-bottom:1rem;">
-              <div style="font-family:'Orbitron',monospace;font-size:0.75rem;
-                          color:#00ff88;font-weight:700;margin-bottom:0.7rem;">
+              <div style="font-family:'Orbitron',monospace;font-size:0.75rem;color:#00ff88;
+                          font-weight:700;margin-bottom:0.7rem;">
                 ✅ BENIGN — ROUTINE MONITORING ADVISED
               </div>
               <div style="font-size:0.82rem;color:#8ab8d0;line-height:2;">
@@ -835,16 +855,18 @@ def page_scan():
               </div>
             </div>""", unsafe_allow_html=True)
 
-        # ── Save record ──
+        # ── Save to session ───────────────────────────────────────
         patient = {
             "name":   p_name or "Unknown",
             "age":    p_age,
             "gender": p_gender,
             "pid":    p_id or f"PT-{st.session_state.total_scans+1:03d}",
         }
-        st.session_state.total_scans   += 1
-        if res["label"] == "Malignant": st.session_state.malignant_cnt += 1
-        else:                           st.session_state.benign_cnt    += 1
+        st.session_state.total_scans += 1
+        if res["label"] == "Malignant":
+            st.session_state.malignant_cnt += 1
+        else:
+            st.session_state.benign_cnt += 1
         st.session_state.scan_history.append({
             "scan_id":    f"SC-{st.session_state.total_scans:03d}",
             "patient_id": patient["pid"],
@@ -852,37 +874,37 @@ def page_scan():
             "diagnosis":  res["label"],
             "confidence": f"{res['conf']}%",
             "risk":       res["risk"],
+            "mode":       "Real CNN" if not res["demo"] else "Demo",
             "timestamp":  datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
         })
-        st.session_state.last_result = (patient, res)
 
-        # ── ACTION BUTTONS ──
+        # ── Action buttons ────────────────────────────────────────
         st.markdown("#### 📋 Actions")
         ba, bb, bc, bd = st.columns(4)
-
         report_txt = make_report(patient, res)
         with ba:
-            st.download_button("📄 Medical Report",
-                               report_txt,
-                               f"Report_{patient['pid']}.txt",
-                               "text/plain",
-                               use_container_width=True)
+            st.download_button(
+                "📄 Medical Report",
+                report_txt,
+                f"Report_{patient['pid']}.txt",
+                "text/plain",
+                use_container_width=True,
+            )
         with bb:
             st.success(f"💾 Record saved — {patient['pid']}")
-
         with bc:
             if st.button("📊 View Dashboard", use_container_width=True):
                 st.session_state.page = "Dashboard"
                 st.rerun()
-
         with bd:
             if st.session_state.scan_history:
                 df_csv = pd.DataFrame(st.session_state.scan_history).to_csv(index=False)
-                st.download_button("📥 Export CSV",
-                                   df_csv, "SkinScan_Records.csv",
-                                   "text/csv", use_container_width=True)
+                st.download_button(
+                    "📥 Export CSV",
+                    df_csv, "SkinScan_Records.csv",
+                    "text/csv", use_container_width=True,
+                )
 
-        # ── AUTO DISCLAIMER ──
         st.markdown("""
         <div style="margin-top:1rem;padding:0.8rem 1rem;
                     background:rgba(255,204,0,0.05);border:1px solid rgba(255,204,0,0.15);
@@ -911,10 +933,10 @@ def page_dashboard():
     avg_c   = round(np.mean(confs), 1) if confs else 0.0
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("🔬 Total Scans",        total)
-    c2.metric("🎯 Avg Confidence",     f"{avg_c}%")
-    c3.metric("⚠️ Malignant Cases",    mal)
-    c4.metric("✅ Benign Cases",        ben)
+    c1.metric("🔬 Total Scans",      total)
+    c2.metric("🎯 Avg Confidence",   f"{avg_c}%")
+    c3.metric("⚠️ Malignant Cases",  mal)
+    c4.metric("✅ Benign Cases",      ben)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -928,18 +950,16 @@ def page_dashboard():
         return
 
     col_l, col_r = st.columns(2)
-
     with col_l:
         fig_pie = px.pie(
-            names=["Benign", "Malignant"],
-            values=[ben, mal],
+            names=["Benign", "Malignant"], values=[ben, mal],
             color_discrete_sequence=["#00ff88", "#ff3355"],
-            hole=0.55, title="Diagnosis Distribution"
+            hole=0.55, title="Diagnosis Distribution",
         )
         fig_pie.update_layout(
             paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
             font_color="#cce8ff", title_font_family="Orbitron",
-            legend_font_color="#3a6080"
+            legend_font_color="#3a6080",
         )
         st.plotly_chart(fig_pie, use_container_width=True)
 
@@ -949,7 +969,7 @@ def page_dashboard():
         fig_bar = go.Figure(go.Bar(
             y=confs[-20:],
             x=list(range(1, len(confs[-20:]) + 1)),
-            marker_color=colors_bar
+            marker_color=colors_bar,
         ))
         fig_bar.update_layout(
             title="Confidence per Scan (last 20)",
@@ -960,13 +980,12 @@ def page_dashboard():
         )
         st.plotly_chart(fig_bar, use_container_width=True)
 
-    # Trend line
     if len(confs) >= 2:
         fig_line = go.Figure(go.Scatter(
             y=confs, mode="lines+markers",
             line=dict(color="#00d4ff", width=2),
             marker=dict(color="#00d4ff", size=5),
-            fill="tozeroy", fillcolor="rgba(0,212,255,0.05)"
+            fill="tozeroy", fillcolor="rgba(0,212,255,0.05)",
         ))
         fig_line.update_layout(
             title="Confidence Trend",
@@ -999,7 +1018,6 @@ def page_registry():
 
     df = pd.DataFrame(st.session_state.scan_history)
     st.dataframe(df, use_container_width=True, hide_index=True)
-
     csv = df.to_csv(index=False)
     st.download_button("📥 Export All Records (CSV)", csv,
                        "SkinScan_Registry.csv", "text/csv")
@@ -1017,21 +1035,20 @@ def page_guide():
 
     steps = [
         ("01", "👤", "Enter Patient Details",
-         "Fill in the patient name, age, gender, and ID in the AI Scan page before uploading an image."),
+         "Fill in patient name, age, gender, and ID in the AI Scan page before uploading."),
         ("02", "🖼️", "Upload Dermoscopic Image",
-         "Upload a clear, well-lit JPEG or PNG dermoscopic skin image. Minimum resolution: 64x64 pixels."),
+         "Upload a clear, well-lit JPEG or PNG dermoscopic image. Minimum 64×64 pixels."),
         ("03", "⚡", "Execute Deep Scan",
-         "Click the EXECUTE DEEP SCAN button. The CNN model will process the image through multiple layers."),
+         "Click EXECUTE DEEP SCAN. The real CNN model processes the image automatically."),
         ("04", "🧬", "View AI Result",
-         "Review the Malignant or Benign classification, confidence percentage, risk level, and probability bars."),
+         "Review Malignant / Benign classification, confidence %, risk level, and charts."),
         ("05", "📄", "Download Medical Report",
-         "Click Generate Medical Report to download a complete clinical report (.txt) for your records."),
+         "Click Medical Report to download a complete clinical report (.txt)."),
         ("06", "📊", "View Dashboard",
-         "Navigate to the Dashboard to see analytics, charts, and historical scan statistics."),
+         "Go to Dashboard for analytics, charts, and historical scan statistics."),
         ("07", "📥", "Export Patient Data",
-         "Export all session scan records as a CSV file from the Registry page."),
+         "Export all session records as a CSV file from the Registry page."),
     ]
-
     for num, icon, title, desc in steps:
         st.markdown(f"""
         <div style="background:rgba(6,18,38,0.75);border:1px solid rgba(0,212,255,0.15);
@@ -1070,8 +1087,7 @@ def render_footer():
                 font-family:'Orbitron',monospace;font-size:0.6rem;
                 color:#1a3a5a;letter-spacing:0.1em;line-height:2.2;">
       <div>University of Agriculture Faisalabad</div>
-      <div style="color:#00d4ff22;">Rehan Shafique &nbsp;|&nbsp; rehanshafiq6540@gmail.com</div>
-      <div>SkinScan AI — Medical Diagnostic System v12.0</div>
+      <div style="color:#00d4ff22;">Rehan Shafique | SkinScan AI v12.0</div>
     </div>""", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════
@@ -1079,14 +1095,12 @@ def render_footer():
 # ══════════════════════════════════════════════
 def main():
     render_sidebar()
-
     page = st.session_state.page
     if   page == "Home":      page_home()
     elif page == "Scan":      page_scan()
     elif page == "Dashboard": page_dashboard()
     elif page == "Registry":  page_registry()
     elif page == "Guide":     page_guide()
-
     render_footer()
 
 if __name__ == "__main__":
