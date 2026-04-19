@@ -2,39 +2,30 @@ import streamlit as st
 import numpy as np
 from PIL import Image
 import onnxruntime as ort
-import gdown
 import os
 
 # ======================
 # CONFIG
 # ======================
-ONNX_GDRIVE_ID = "1wNRAdJOrmjaewqu9YRpqMqKS0RcihzDA"
 MODEL_PATH = "model.onnx"
 
-st.set_page_config(page_title="Skin Cancer AI", layout="centered")
+st.set_page_config(page_title="SkinScan AI", layout="centered")
 
 # ======================
-# DOWNLOAD MODEL SAFE
-# ======================
-def download_model():
-    if os.path.exists(MODEL_PATH) and os.path.getsize(MODEL_PATH) > 1000000:
-        return
-
-    url = f"https://drive.google.com/uc?id={ONNX_GDRIVE_ID}"
-    gdown.download(url, MODEL_PATH, quiet=False)
-
-# ======================
-# LOAD MODEL
+# LOAD MODEL (LOCAL FILE)
 # ======================
 @st.cache_resource
 def load_model():
-    download_model()
+    if not os.path.exists(MODEL_PATH):
+        st.error("❌ model.onnx file missing in repo!")
+        st.stop()
+
     return ort.InferenceSession(MODEL_PATH)
 
 session = load_model()
 
 # ======================
-# PREDICT
+# PREDICT FUNCTION
 # ======================
 def predict(img):
     img = img.resize((224, 224))
@@ -61,11 +52,11 @@ def predict(img):
 # ======================
 st.title("🧬 Skin Cancer Detection AI")
 
-file = st.file_uploader("Upload Image", type=["jpg","png","jpeg"])
+uploaded = st.file_uploader("Upload Image", type=["jpg","png","jpeg"])
 
-if file:
-    img = Image.open(file).convert("RGB")
-    st.image(img)
+if uploaded:
+    img = Image.open(uploaded).convert("RGB")
+    st.image(img, caption="Uploaded Image")
 
     if st.button("Predict"):
         label, conf = predict(img)
