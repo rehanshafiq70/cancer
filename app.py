@@ -154,7 +154,7 @@ hr { border-color: rgba(0,212,255,.09) !important; }
 # ⚠️  IMPORTANT — REPLACE THIS WITH YOUR NEW ONNX FILE ID
 # After running convert_model.py in Colab, paste the new File ID here
 # ══════════════════════════════════════════════════════════════════
-ONNX_GDRIVE_ID = "PASTE_YOUR_ONNX_FILE_ID_HERE"   # ← Change this!
+ONNX_GDRIVE_ID = "1wNRAdJOrmjaewqu9YRpqMqKS0RcihzDA"   # ← Change this!
 ONNX_PATH      = "skin_cancer_model.onnx"
 
 # ══════════════════════════════════════════════════════════════════
