@@ -192,7 +192,7 @@ st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 # ─────────────────────────────────────────────
 def init_state():
     defaults = {
-        "authenticated": False,
+        "authenticated": True,
         "page": "Dashboard",
         "scan_history": [],
         "total_scans": 0,
@@ -603,9 +603,6 @@ def render_sidebar():
           </div>
         </div>""", unsafe_allow_html=True)
 
-        if st.button("🚪  Logout", use_container_width=True):
-            st.session_state.authenticated = False
-            st.rerun()
 
 # ─────────────────────────────────────────────
 # PAGE: DASHBOARD
@@ -908,9 +905,6 @@ def page_guide():
 # MAIN ROUTER
 # ─────────────────────────────────────────────
 def main():
-    if not st.session_state.authenticated:
-        page_login()
-        return
 
     render_sidebar()
 
