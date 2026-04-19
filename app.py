@@ -656,11 +656,12 @@ def page_dashboard():
             fig_pie.update_traces(textfont_color="#e8f4ff")
             st.plotly_chart(fig_pie, use_container_width=True)
         else:
-            st.markdown(glass_card("""
-                <div style="text-align:center;padding:2rem;color:#3d6080;">
-                  <div style="font-size:2rem;margin-bottom:0.5rem;">📊</div>
-                  No scan data yet. Run your first AI Scan.
-                </div>"""), unsafe_allow_html=True)
+            st.markdown("""
+                <div style="background:rgba(10,30,60,0.6);border:1px solid rgba(0,200,180,0.2);
+                            border-radius:16px;padding:2.5rem;text-align:center;">
+                  <div style="font-size:2.5rem;margin-bottom:0.6rem;">📊</div>
+                  <div style="color:#3d6080;font-size:0.9rem;">No scan data yet. Run your first AI Scan.</div>
+                </div>""", unsafe_allow_html=True)
 
     with col_r:
         if history:
@@ -684,11 +685,12 @@ def page_dashboard():
             )
             st.plotly_chart(fig_bar, use_container_width=True)
         else:
-            st.markdown(glass_card("""
-                <div style="text-align:center;padding:2rem;color:#3d6080;">
-                  <div style="font-size:2rem;margin-bottom:0.5rem;">📈</div>
-                  Confidence chart will appear after scans.
-                </div>"""), unsafe_allow_html=True)
+            st.markdown("""
+                <div style="background:rgba(10,30,60,0.6);border:1px solid rgba(0,200,180,0.2);
+                            border-radius:16px;padding:2.5rem;text-align:center;">
+                  <div style="font-size:2.5rem;margin-bottom:0.6rem;">📈</div>
+                  <div style="color:#3d6080;font-size:0.9rem;">Confidence chart will appear after scans.</div>
+                </div>""", unsafe_allow_html=True)
 
     # ── Recent scans table ──
     if history:
@@ -861,45 +863,48 @@ def page_guide():
     """, unsafe_allow_html=True)
 
     steps = [
-        ("1", "🔐", "Login",
-         "Enter username <b>admin</b> and password <b>123</b> on the login screen."),
-        ("2", "👤", "Enter Patient Details",
+        ("1", "👤", "Enter Patient Details",
          "Fill in the patient name, age, gender, and ID in the AI Scan page."),
-        ("3", "🖼️", "Upload Dermoscopic Image",
-         "Upload a <b>clear, well-lit</b> dermoscopic JPEG/PNG image (min 64×64 px)."),
-        ("4", "⚡", "Execute Deep Scan",
-         "Click the <b>Execute Deep Scan</b> button to trigger the CNN model."),
-        ("5", "🧬", "View AI Result",
-         "Review the <b>Malignant / Benign</b> classification, confidence %, and risk level."),
-        ("6", "📄", "Approve & Download Report",
-         "Download the auto-generated <b>medical report (.txt)</b> for clinical records."),
-        ("7", "📊", "Export Patient Data",
-         "Export all session data as <b>CSV</b> for further analysis or EMR integration."),
+        ("2", "🖼️", "Upload Dermoscopic Image",
+         "Upload a clear, well-lit dermoscopic JPEG/PNG image (minimum 64x64 px)."),
+        ("3", "⚡", "Execute Deep Scan",
+         "Click the Execute Deep Scan button to trigger the CNN model."),
+        ("4", "🧬", "View AI Result",
+         "Review the Malignant or Benign classification, confidence percentage, and risk level."),
+        ("5", "📄", "Download Report",
+         "Download the auto-generated medical report (.txt) for clinical records."),
+        ("6", "📊", "Export Patient Data",
+         "Export all session data as CSV for further analysis or EMR integration."),
     ]
 
     for num, icon, title, desc in steps:
-        st.markdown(glass_card(f"""
-        <div style="display:flex;align-items:flex-start;gap:16px;">
-          <div style="min-width:38px;height:38px;border-radius:10px;
-                      background:linear-gradient(135deg,#0a84ff22,#00c8b422);
-                      border:1px solid rgba(0,200,180,0.3);
-                      display:flex;align-items:center;justify-content:center;
-                      font-size:1.1rem;">{icon}</div>
-          <div>
-            <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;
-                        color:#e8f4ff;margin-bottom:4px;">Step {num}: {title}</div>
-            <div style="font-family:'DM Sans',sans-serif;font-size:0.85rem;
-                        color:#7fa8c9;line-height:1.6;">{desc}</div>
+        st.markdown(f"""
+        <div style="background:rgba(10,30,60,0.6);border:1px solid rgba(0,200,180,0.2);
+                    border-radius:16px;padding:1.2rem 1.5rem;margin-bottom:0.8rem;">
+          <div style="display:flex;align-items:flex-start;gap:14px;">
+            <div style="min-width:40px;height:40px;border-radius:10px;
+                        background:rgba(0,132,255,0.12);
+                        border:1px solid rgba(0,200,180,0.3);
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:1.2rem;flex-shrink:0;">{icon}</div>
+            <div>
+              <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;
+                          color:#e8f4ff;margin-bottom:3px;">Step {num}: {title}</div>
+              <div style="font-size:0.85rem;color:#7fa8c9;line-height:1.6;">{desc}</div>
+            </div>
           </div>
-        </div>"""), unsafe_allow_html=True)
+        </div>""", unsafe_allow_html=True)
 
-    st.markdown(glass_card("""
-    <div style="font-family:'DM Sans',sans-serif;font-size:0.8rem;color:#3d6080;line-height:1.8;">
-      <b style="color:#ffd166;">⚠️ Clinical Disclaimer:</b><br>
-      SkinScan AI is an assistive tool designed to support, not replace,
-      professional dermatological diagnosis. Always confirm AI findings with a
-      licensed clinician before initiating treatment.
-    </div>"""), unsafe_allow_html=True)
+    st.markdown("""
+    <div style="background:rgba(10,30,60,0.6);border:1px solid rgba(255,209,102,0.25);
+                border-radius:16px;padding:1.2rem 1.5rem;margin-top:0.5rem;">
+      <div style="font-size:0.82rem;color:#7fa8c9;line-height:1.8;">
+        <span style="color:#ffd166;font-weight:700;">&#9888; Clinical Disclaimer:</span><br>
+        SkinScan AI is an assistive tool designed to support, not replace,
+        professional dermatological diagnosis. Always confirm AI findings with a
+        licensed clinician before initiating treatment.
+      </div>
+    </div>""", unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
 # MAIN ROUTER
