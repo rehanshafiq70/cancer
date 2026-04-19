@@ -2,4 +2,6 @@ streamlit
 numpy
 pillow
 onnxruntime
-requests
+gdown
+tensorflow
+tf2onnx
