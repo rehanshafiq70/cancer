@@ -14,4 +14,3 @@ plotly
 Pillow
 requests
 gdown
-tensorflow
